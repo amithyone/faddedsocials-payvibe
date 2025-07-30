@@ -16,7 +16,7 @@ class WebhookService
     {
         try {
             // Xtrabusiness webhook configuration
-            $webhookUrl = env('XTRABUSINESS_WEBHOOK_URL', 'https://xtrabusiness.com/webhook');
+            $webhookUrl = env('XTRABUSINESS_WEBHOOK_URL', 'https://xtrapay.cash/webhook');
             $apiKey = env('XTRABUSINESS_API_KEY', '');
             $apiCode = env('XTRABUSINESS_API_CODE', 'faddedsocials');
 
@@ -123,7 +123,7 @@ class WebhookService
     {
         try {
             // PayVibe webhook configuration
-            $webhookUrl = env('PAYVIBE_WEBHOOK_URL', 'https://payvibeapi.six3tech.com/api');
+            $webhookUrl = env('PAYVIBE_WEBHOOK_URL', 'https://payvibeapi.six3tech.com/api/webhook');
             $apiKey = env('PAYVIBE_SECRET_KEY', '');
             $apiCode = env('PAYVIBE_API_CODE', 'faddedsocials');
 
