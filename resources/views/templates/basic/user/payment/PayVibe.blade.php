@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        @if ($errors->any())
+        @if (isset($errors) && $errors->any())
             <div class="alert alert-danger my-4">
                 <ul>
                     @foreach ($errors->all() as $error)
@@ -32,7 +32,7 @@
                     <div class="alert alert-info" role="alert">
                         <p class="mb-0">
                             @lang('Please transfer exactly') 
-                            <strong>{{ showAmount($data->val->amount) }} {{ __($data->val->currency) }}</strong> 
+                            <strong>{{ showAmount($data->val['amount']) }} {{ __($data->val['currency']) }}</strong> 
                             @lang('to the virtual account below')
                         </p>
                     </div>
@@ -44,7 +44,7 @@
                                 @lang('Please copy the transaction reference below and use it as the <b>narration</b> or <b>description</b> when making your transfer. Our customer support will need this reference if you report any issues about this transaction') 
                             </p>
                             <div class="d-flex align-items-center">
-                                <span class="value me-2" id="reference">FADDED-{{ $data->val->reference ?? 'N/A' }}</span>
+                                <span class="value me-2" id="reference">FADDED-{{ $data->val['reference'] ?? 'N/A' }}</span>
                                 <button class="btn btn-sm copy-btn" onclick="copyToClipboard('reference')">
                                     <i class="fas fa-copy"></i>
                                 </button>
@@ -58,13 +58,13 @@
                             <div class="col-12">
                                 <div class="d-flex justify-content-between mb-3">
                                     <span class="font-weight-bold">@lang('Bank Name'):</span>
-                                    <span class="value" id="bankName">{{ __($data->val->bank_name ?? 'N/A') }}</span>
+                                    <span class="value" id="bankName">{{ __($data->val['bank_name'] ?? 'N/A') }}</span>
                                 </div>
                                 <hr>
                                 <div class="d-flex justify-content-between mb-3">
                                     <span class="font-weight-bold">@lang('Account Number'):</span>
                                     <div class="d-flex align-items-center">
-                                        <span class="value me-2" id="accountNumber">{{ __($data->val->virtual_account ?? 'N/A') }}</span>
+                                        <span class="value me-2" id="accountNumber">{{ __($data->val['virtual_account'] ?? 'N/A') }}</span>
                                         <button class="btn btn-sm copy-btn" onclick="copyToClipboard('accountNumber')">
                                             <i class="fas fa-copy"></i>
                                         </button>
@@ -73,13 +73,13 @@
                                 <hr>
                                 <div class="d-flex justify-content-between mb-3">
                                     <span class="font-weight-bold">@lang('Account Name'):</span>
-                                    <span class="value">{{ __($data->val->account_name ?? 'N/A') }}</span>
+                                    <span class="value">{{ __($data->val['account_name'] ?? 'N/A') }}</span>
                                 </div>
                                 <hr>
                                 <div class="d-flex justify-content-between mb-3">
                                     <span class="font-weight-bold">@lang('Amount'):</span>
                                     <div class="d-flex align-items-center">
-                                        <span class="value me-2" id="amount">{{ showAmount($data->val->amount) }} {{ __($data->val->currency) }}</span>
+                                        <span class="value me-2" id="amount">{{ showAmount($data->val['amount']) }} {{ __($data->val['currency']) }}</span>
                                         <button class="btn btn-sm copy-btn" onclick="copyToClipboard('amount')">
                                             <i class="fas fa-copy"></i>
                                         </button>
@@ -89,7 +89,7 @@
                                 <div class="d-flex justify-content-between mb-3">
                                     <span class="font-weight-bold">@lang('Reference'):</span>
                                     <div class="d-flex align-items-center">
-                                        <span class="value me-2" id="reference2">FADDED-{{ $data->val->reference ?? 'N/A' }}</span>
+                                        <span class="value me-2" id="reference2">FADDED-{{ $data->val['reference'] ?? 'N/A' }}</span>
                                         <button class="btn btn-sm copy-btn" onclick="copyToClipboard('reference2')">
                                             <i class="fas fa-copy"></i>
                                         </button>
@@ -158,13 +158,13 @@
                     <h6><i class="fas fa-info-circle me-2"></i>@lang('Account Details Summary'):</h6>
                     <div class="row">
                         <div class="col-md-6">
-                            <strong>@lang('Bank'):</strong> {{ __($data->val->bank_name ?? 'N/A') }}<br>
-                            <strong>@lang('Account Number'):</strong> {{ __($data->val->virtual_account ?? 'N/A') }}<br>
-                            <strong>@lang('Account Name'):</strong> {{ __($data->val->account_name ?? 'N/A') }}
+                            <strong>@lang('Bank'):</strong> {{ __($data->val['bank_name'] ?? 'N/A') }}<br>
+                            <strong>@lang('Account Number'):</strong> {{ __($data->val['virtual_account'] ?? 'N/A') }}<br>
+                            <strong>@lang('Account Name'):</strong> {{ __($data->val['account_name'] ?? 'N/A') }}
                         </div>
                         <div class="col-md-6">
-                            <strong>@lang('Amount'):</strong> {{ showAmount($data->val->amount) }} {{ __($data->val->currency) }}<br>
-                            <strong>@lang('Reference'):</strong> FADDED-{{ $data->val->reference ?? 'N/A' }}
+                            <strong>@lang('Amount'):</strong> {{ showAmount($data->val['amount']) }} {{ __($data->val['currency']) }}<br>
+                            <strong>@lang('Reference'):</strong> FADDED-{{ $data->val['reference'] ?? 'N/A' }}
                         </div>
                     </div>
                 </div>
