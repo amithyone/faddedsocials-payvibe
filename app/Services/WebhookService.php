@@ -29,9 +29,9 @@ class WebhookService
                 return false;
             }
 
-            // Calculate the amount credited to user (amount after charges) - rounded to nearest 100
+            // Calculate the amount credited to user (amount after charges) - rounded to nearest 10
             $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
-            $creditedAmount = round($creditedAmount / 100) * 100; // Round to nearest 100
+            $creditedAmount = round($creditedAmount / 10) * 10; // Round to nearest 10
             $totalPaid = $deposit->final_amo ?? $deposit->amount + $deposit->charge;
             $charges = $deposit->charge ?? 0;
 
@@ -299,33 +299,33 @@ class WebhookService
      */
     public static function sendCreditedAmountToXtrabusiness(Deposit $deposit, User $user)
     {
-        // Skip manual payments - they are not instant payment methods
-        if ($deposit->gateway->code == 1000) {
-            Log::info('Skipping credited amount webhook for manual payment', [
-                'deposit_id' => $deposit->id,
-                'payment_method' => 'manual'
-            ]);
-            return true;
-        }
-        
-        try {
-            // Xtrabusiness webhook configuration
-            $webhookUrl = env('XTRABUSINESS_WEBHOOK_URL', 'https://xtrapay.cash/webhook');
-            $apiKey = env('XTRABUSINESS_API_KEY', '');
-            $apiCode = env('XTRABUSINESS_API_CODE', 'faddedsocials');
-
-            if (empty($webhookUrl) || empty($apiKey)) {
-                Log::warning('Xtrabusiness webhook not configured for credited amount', [
+                    // Skip manual payments - they are not instant payment methods
+            if ($deposit->gateway->code == 1000) {
+                Log::info('Skipping credited amount webhook for manual payment', [
                     'deposit_id' => $deposit->id,
-                    'webhook_url' => $webhookUrl,
-                    'has_api_key' => !empty($apiKey)
+                    'payment_method' => 'manual'
                 ]);
-                return false;
+                return true;
             }
+            
+            try {
+                // Xtrabusiness webhook configuration
+                $webhookUrl = env('XTRABUSINESS_WEBHOOK_URL', 'https://xtrapay.cash/webhook');
+                $apiKey = env('XTRABUSINESS_API_KEY', '');
+                $apiCode = env('XTRABUSINESS_API_CODE', 'faddedsocials');
 
-            // Calculate the amount credited to user (amount after charges) - rounded to nearest 100
-            $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
-            $creditedAmount = round($creditedAmount / 100) * 100; // Round to nearest 100
+                if (empty($webhookUrl) || empty($apiKey)) {
+                    Log::warning('Xtrabusiness webhook not configured for credited amount', [
+                        'deposit_id' => $deposit->id,
+                        'webhook_url' => $webhookUrl,
+                        'has_api_key' => !empty($apiKey)
+                    ]);
+                    return false;
+                }
+
+                // Calculate the amount credited to user (amount after charges) - rounded to nearest 10
+                $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
+                $creditedAmount = round($creditedAmount / 10) * 10; // Round to nearest 10
             $totalPaid = $deposit->final_amo ?? $deposit->amount + $deposit->charge;
             $charges = $deposit->charge ?? 0;
 

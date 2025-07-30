@@ -293,7 +293,7 @@ class ProcessController extends Controller
                     
                     // Calculate amount to credit to user (actual amount received minus our charges)
                     $deposit->amount = max(0, $actualAmountReceived - $deposit->charge);
-                    $deposit->amount = round($deposit->amount / 100) * 100; // Round to nearest 100
+                    $deposit->amount = round($deposit->amount / 10) * 10; // Round to nearest 10
         
                             // Log the calculation for debugging
                     \Log::info('PayVibe IPN: Amount calculation', [
