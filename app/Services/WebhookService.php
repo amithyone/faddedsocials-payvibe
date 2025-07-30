@@ -44,10 +44,10 @@ class WebhookService
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => $status === 'successful' ? 'success' : $status,
-                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : 'xtrapay',
+                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : ($deposit->gateway->code == 1000 ? 'manual' : 'xtrapay'),
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
-                'description' => $deposit->gateway->code == 120 ? 'Deposit via PayVibe' : 'Deposit via Xtrapay',
+                'description' => $deposit->gateway->code == 120 ? 'Deposit via PayVibe' : ($deposit->gateway->code == 1000 ? 'Deposit via Manual Payment' : 'Deposit via Xtrapay'),
                 'external_id' => (string) $deposit->id,
                 'metadata' => [
                     'deposit_id' => $deposit->id,
@@ -306,7 +306,7 @@ class WebhookService
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => 'success', // Use 'success' instead of 'credited'
-                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : 'xtrapay',
+                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : ($deposit->gateway->code == 1000 ? 'manual' : 'xtrapay'),
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
                 'description' => 'Amount credited to user balance',
