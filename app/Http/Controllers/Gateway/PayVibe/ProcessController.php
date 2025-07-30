@@ -220,19 +220,21 @@ class ProcessController extends Controller
             \Log::info('PayVibe IPN: Skipping hash verification (no hash provided by PayVibe)');
         }
     
-        // Extract transaction details
-        $reference = $data['reference'] ?? $data['ref'] ?? $data['transaction_id'] ?? null;
-        $productIdentifier = $data['product_identifier'] ?? null;
-        $amountReceived = $data['net_amount'] ?? $data['amount'] ?? $data['amount_paid'] ?? $data['paid_amount'] ?? 0;
-        $status = strtolower($data['status'] ?? $data['payment_status'] ?? 'successful'); // Default to successful for PayVibe
+                            // Extract transaction details
+                    $reference = $data['reference'] ?? $data['ref'] ?? $data['transaction_id'] ?? null;
+                    $productIdentifier = $data['product_identifier'] ?? null;
+                    $amountReceived = $data['transaction_amount'] ?? $data['net_amount'] ?? $data['amount'] ?? $data['amount_paid'] ?? $data['paid_amount'] ?? 0;
+                    $status = strtolower($data['status'] ?? $data['payment_status'] ?? 'successful'); // Default to successful for PayVibe
         
-        \Log::info('PayVibe IPN: Extracted transaction details', [
-            'reference' => $reference,
-            'product_identifier' => $productIdentifier,
-            'amount_received' => $amountReceived,
-            'status' => $status,
-            'data' => $data
-        ]);
+                            \Log::info('PayVibe IPN: Extracted transaction details', [
+                        'reference' => $reference,
+                        'product_identifier' => $productIdentifier,
+                        'transaction_amount' => $data['transaction_amount'] ?? null,
+                        'net_amount' => $data['net_amount'] ?? null,
+                        'amount_received' => $amountReceived,
+                        'status' => $status,
+                        'data' => $data
+                    ]);
     
         // Validate reference
         if (!$reference) {
