@@ -129,22 +129,27 @@ class ProcessController extends Controller
         $data = null;
         $hash = null;
         
-        // Structure 1: {"data": {...}, "hash": "..."}
-        if (isset($payload['data']) && isset($payload['hash'])) {
+        // Structure 1: PayVibe standard format {"reference": "...", "product_identifier": "..."}
+        if (isset($payload['reference']) && isset($payload['product_identifier'])) {
+            $data = $payload;
+            $hash = $payload['hash'] ?? $payload['signature'] ?? null;
+        }
+        // Structure 2: {"data": {...}, "hash": "..."}
+        elseif (isset($payload['data']) && isset($payload['hash'])) {
             $data = $payload['data'];
             $hash = $payload['hash'];
         }
-        // Structure 2: Direct data without wrapper
+        // Structure 3: Direct data without wrapper
         elseif (isset($payload['reference']) || isset($payload['status'])) {
             $data = $payload;
             $hash = $payload['hash'] ?? $payload['signature'] ?? null;
         }
-        // Structure 3: Alternative field names
+        // Structure 4: Alternative field names
         elseif (isset($payload['ref']) || isset($payload['payment_status'])) {
             $data = $payload;
             $hash = $payload['hash'] ?? $payload['signature'] ?? null;
         }
-        // Structure 4: Transaction ID format
+        // Structure 5: Transaction ID format
         elseif (isset($payload['transaction_id'])) {
             $data = $payload;
             $hash = $payload['hash'] ?? $payload['signature'] ?? null;
@@ -184,11 +189,13 @@ class ProcessController extends Controller
     
         // Extract transaction details
         $reference = $data['reference'] ?? $data['ref'] ?? $data['transaction_id'] ?? null;
+        $productIdentifier = $data['product_identifier'] ?? null;
         $amountReceived = $data['amount'] ?? $data['amount_paid'] ?? $data['paid_amount'] ?? 0;
-        $status = strtolower($data['status'] ?? $data['payment_status'] ?? 'pending'); // Normalize status
+        $status = strtolower($data['status'] ?? $data['payment_status'] ?? 'successful'); // Default to successful for PayVibe
         
         \Log::info('PayVibe IPN: Extracted transaction details', [
             'reference' => $reference,
+            'product_identifier' => $productIdentifier,
             'amount_received' => $amountReceived,
             'status' => $status,
             'data' => $data
@@ -211,6 +218,14 @@ class ProcessController extends Controller
                 'reference' => $reference
             ]);
             return $this->updateDepositInfo($reference, "Invalid status received: {$status}");
+        }
+        
+        // Log product identifier for PayVibe
+        if ($productIdentifier) {
+            \Log::info('PayVibe IPN: Product identifier', [
+                'product_identifier' => $productIdentifier,
+                'reference' => $reference
+            ]);
         }
     
         // Find deposit transaction with row locking
