@@ -184,13 +184,13 @@ class ProcessController extends Controller
                 return $this->updateDepositInfo($data['reference'] ?? null, 'Invalid Authentication');
             }
         } else {
-            \Log::info('PayVibe IPN: Skipping hash verification (no hash or key provided)');
+            \Log::info('PayVibe IPN: Skipping hash verification (no hash provided by PayVibe)');
         }
     
         // Extract transaction details
         $reference = $data['reference'] ?? $data['ref'] ?? $data['transaction_id'] ?? null;
         $productIdentifier = $data['product_identifier'] ?? null;
-        $amountReceived = $data['amount'] ?? $data['amount_paid'] ?? $data['paid_amount'] ?? 0;
+        $amountReceived = $data['net_amount'] ?? $data['amount'] ?? $data['amount_paid'] ?? $data['paid_amount'] ?? 0;
         $status = strtolower($data['status'] ?? $data['payment_status'] ?? 'successful'); // Default to successful for PayVibe
         
         \Log::info('PayVibe IPN: Extracted transaction details', [
@@ -245,21 +245,32 @@ class ProcessController extends Controller
         }
         $mismatch = false;
     
-        // Validate received amount against the expected deposit amount
-        if ((float) $amountReceived < (float) $deposit->final_amo) {
-            $deposit->expected_amount = $deposit->final_amo;
-            $this->updateDepositInfo($reference, "Amount mismatch: Expected {$deposit->final_amo}, received {$amountReceived}", $data);
-            $mismatch = true;
-            $deposit->final_amo = $amountReceived;
-            $gateWayCurrency = $deposit->gatewayCurrency();
-            $deposit->charge = $gateWayCurrency->fixed_charge + (round($amountReceived, 2)* ($gateWayCurrency->percent_charge /100));
-            if($amountReceived >= 10000){
-                $deposit->charge = $gateWayCurrency->fixed_charge + (round($amountReceived, 2)* (($gateWayCurrency->percent_charge + 0.5) /100));
-            }
-            $deposit->amount = max(0, $deposit->final_amo - $deposit->charge); // Ensure amount is never negative
-            $deposit->amount = round($deposit->amount / 100) * 100; // Round to nearest 100
-            $deposit->save();
+        // For PayVibe, net_amount is the amount after PayVibe's fees, not our fees
+        // We should use the original deposit amount and apply our own charges
+        $originalAmount = $deposit->final_amo;
+        $gateWayCurrency = $deposit->gatewayCurrency();
+        
+        // Calculate our charges based on the original amount
+        $deposit->charge = $gateWayCurrency->fixed_charge + (round($originalAmount, 2)* ($gateWayCurrency->percent_charge /100));
+        if($originalAmount >= 10000){
+            $deposit->charge = $gateWayCurrency->fixed_charge + (round($originalAmount, 2)* (($gateWayCurrency->percent_charge + 0.5) /100));
         }
+        
+        // Calculate amount to credit to user (original amount minus our charges)
+        $deposit->amount = max(0, $originalAmount - $deposit->charge);
+        $deposit->amount = round($deposit->amount / 100) * 100; // Round to nearest 100
+        
+        // Log the calculation for debugging
+        \Log::info('PayVibe IPN: Amount calculation', [
+            'reference' => $reference,
+            'original_amount' => $originalAmount,
+            'payvibe_net_amount' => $amountReceived,
+            'our_charge' => $deposit->charge,
+            'amount_to_credit' => $deposit->amount,
+            'payvibe_fees' => $originalAmount - $amountReceived
+        ]);
+        
+        $deposit->save();
     
         // Start a database transaction
         DB::beginTransaction();
