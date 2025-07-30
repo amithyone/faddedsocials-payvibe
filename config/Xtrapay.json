@@ -1,0 +1,24 @@
+{
+    "name": "XtraPay",
+    "alias": "Xtrapay",
+    "image": "xtrapay.jpg",
+    "description": "XtraPay Payment Gateway",
+    "code": 118,
+    "supported_currencies": {
+        "NGN": "₦"
+    },
+    "crypto": 0,
+    "parameters": {
+        "access_key": {
+            "title": "Access Key",
+            "global": true,
+            "value": "2e0c15752f795f022601439e7427c346e5bb037de93d40ad7eb1ffb82e1411f5"
+        }
+    },
+    "extra": {
+        "webhook": {
+            "title": "Webhook URL",
+            "value": "ipn.Xtrapay"
+        }
+    }
+}

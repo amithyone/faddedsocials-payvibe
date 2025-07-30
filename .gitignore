@@ -3,6 +3,7 @@
 /public/storage
 /storage/*.key
 /vendor
+/public/core/vendor
 .env
 .env.backup
 .phpunit.result.cache
@@ -18,3 +19,15 @@ storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
+storage/debugbar/*
+storage/app/assets/*
+storage/app/result.txt
+test_payvibe.php
+testdb.php
+debug_payvibe.php
+payveibe-recrense/
+Archive.zip
+.DS_Store
+error_log
+*.sql
+*.md
