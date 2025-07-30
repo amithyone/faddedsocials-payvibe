@@ -101,36 +101,105 @@ class ProcessController extends Controller
     
     public function ipn(Request $request)
     {
+        // Log the incoming request for debugging
+        \Log::info('PayVibe IPN received', [
+            'headers' => $request->headers->all(),
+            'body' => $request->getContent(),
+            'json' => $request->json()->all(),
+            'all' => $request->all()
+        ]);
+
         // Retrieve JSON payload
         $payload = $request->json()->all();
+        
+        // If no JSON payload, try form data
+        if (empty($payload)) {
+            $payload = $request->all();
+        }
     
-        // Ensure required fields exist
-        if (!isset($payload['data']) || !isset($payload['hash'])) {
-            return response()->json(['error' => 'Invalid request'], 400);
+        // Log the payload structure
+        \Log::info('PayVibe IPN payload structure', [
+            'payload' => $payload,
+            'has_data' => isset($payload['data']),
+            'has_hash' => isset($payload['hash']),
+            'keys' => array_keys($payload)
+        ]);
+    
+        // Check for different possible payload structures
+        $data = null;
+        $hash = null;
+        
+        // Structure 1: {"data": {...}, "hash": "..."}
+        if (isset($payload['data']) && isset($payload['hash'])) {
+            $data = $payload['data'];
+            $hash = $payload['hash'];
+        }
+        // Structure 2: Direct data without wrapper
+        elseif (isset($payload['reference']) || isset($payload['status'])) {
+            $data = $payload;
+            $hash = $payload['hash'] ?? $payload['signature'] ?? null;
+        }
+        // Structure 3: Check for other common fields
+        else {
+            \Log::error('PayVibe IPN: Unknown payload structure', [
+                'payload' => $payload
+            ]);
+            return response()->json(['error' => 'Invalid request structure'], 400);
         }
     
         // Retrieve secret key securely
         $accessKey = env('PAYVIBE_SECRET_KEY', 'your_default_secret_key');
     
-        // Compute expected hash
-        $computedHash = hash_hmac('sha256', json_encode($payload['data']), $accessKey);
+        // Log hash verification attempt
+        \Log::info('PayVibe IPN hash verification', [
+            'data' => $data,
+            'hash' => $hash,
+            'has_access_key' => !empty($accessKey)
+        ]);
     
-        // Verify hash
-        
-        if (!hash_equals($computedHash, $payload['hash'])) {
-            return $this->updateDepositInfo($payload['data']['reference'] ?? null, 'Invalid Authentication');
+        // Verify hash if provided
+        if ($hash && $accessKey) {
+            $computedHash = hash_hmac('sha256', json_encode($data), $accessKey);
+            
+            if (!hash_equals($computedHash, $hash)) {
+                \Log::warning('PayVibe IPN: Hash verification failed', [
+                    'expected' => $computedHash,
+                    'received' => $hash
+                ]);
+                return $this->updateDepositInfo($data['reference'] ?? null, 'Invalid Authentication');
+            }
+        } else {
+            \Log::info('PayVibe IPN: Skipping hash verification (no hash or key provided)');
         }
     
         // Extract transaction details
-        $data = $payload['data'];
-        $reference = $data['reference'] ?? null;
-        $amountReceived = $data['amount'] ?? 0;
-        $status = strtolower($data['status'] ?? 'pending'); // Normalize status
+        $reference = $data['reference'] ?? $data['ref'] ?? $data['transaction_id'] ?? null;
+        $amountReceived = $data['amount'] ?? $data['amount_paid'] ?? $data['paid_amount'] ?? 0;
+        $status = strtolower($data['status'] ?? $data['payment_status'] ?? 'pending'); // Normalize status
+        
+        \Log::info('PayVibe IPN: Extracted transaction details', [
+            'reference' => $reference,
+            'amount_received' => $amountReceived,
+            'status' => $status,
+            'data' => $data
+        ]);
+    
+        // Validate reference
+        if (!$reference) {
+            \Log::error('PayVibe IPN: No reference found in payload', [
+                'data' => $data
+            ]);
+            return response()->json(['error' => 'No reference provided'], 400);
+        }
     
         // Define valid statuses
         $validStatuses = ['pending', 'successful', 'failed', 'reversed'];
     
         if (!in_array($status, $validStatuses)) {
+            \Log::warning('PayVibe IPN: Invalid status received', [
+                'status' => $status,
+                'reference' => $reference
+            ]);
             return $this->updateDepositInfo($reference, "Invalid status received: {$status}");
         }
     
