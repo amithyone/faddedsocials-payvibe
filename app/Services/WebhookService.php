@@ -29,8 +29,9 @@ class WebhookService
                 return false;
             }
 
-            // Calculate the amount credited to user (amount after charges)
+            // Calculate the amount credited to user (amount after charges) - rounded to nearest 100
             $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
+            $creditedAmount = round($creditedAmount / 100) * 100; // Round to nearest 100
             $totalPaid = $deposit->final_amo ?? $deposit->amount + $deposit->charge;
             $charges = $deposit->charge ?? 0;
 
@@ -289,8 +290,9 @@ class WebhookService
                 return false;
             }
 
-            // Calculate the amount credited to user (amount after charges)
+            // Calculate the amount credited to user (amount after charges) - rounded to nearest 100
             $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
+            $creditedAmount = round($creditedAmount / 100) * 100; // Round to nearest 100
             $totalPaid = $deposit->final_amo ?? $deposit->amount + $deposit->charge;
             $charges = $deposit->charge ?? 0;
 
