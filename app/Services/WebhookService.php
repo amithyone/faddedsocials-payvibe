@@ -30,7 +30,7 @@ class WebhookService
             }
 
             // Calculate the amount credited to user (amount after charges)
-            $creditedAmount = $deposit->amount; // This is the amount that goes to user's balance
+            $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
             $totalPaid = $deposit->final_amo ?? $deposit->amount + $deposit->charge;
             $charges = $deposit->charge ?? 0;
 
@@ -61,7 +61,7 @@ class WebhookService
                     'site_url' => 'https://faddedsocials.com',
                     'user_balance_before' => $user->balance - $creditedAmount, // User balance before credit
                     'user_balance_after' => $user->balance, // User balance after credit
-                    'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'socails')
+                    'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'socials')
                 ],
                 'timestamp' => $deposit->created_at ? $deposit->created_at->toISOString() : now()->toISOString()
             ];
@@ -290,7 +290,7 @@ class WebhookService
             }
 
             // Calculate the amount credited to user (amount after charges)
-            $creditedAmount = $deposit->amount; // This is the amount that goes to user's balance
+            $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
             $totalPaid = $deposit->final_amo ?? $deposit->amount + $deposit->charge;
             $charges = $deposit->charge ?? 0;
 
@@ -298,11 +298,12 @@ class WebhookService
             $payload = [
                 'site_api_code' => $apiCode,
                 'reference' => $deposit->trx,
+                'amount' => $creditedAmount, // Amount credited to user (required field)
                 'credited_amount' => $creditedAmount, // Amount credited to user
                 'total_paid' => $totalPaid, // Total amount paid by user
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
-                'status' => 'credited',
+                'status' => 'success', // Use 'success' instead of 'credited'
                 'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : 'xtrapay',
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
@@ -323,7 +324,7 @@ class WebhookService
                     'user_balance_after' => $user->balance, // User balance after credit
                     'credit_timestamp' => now()->toISOString(),
                     'transaction_type' => 'credit',
-                    'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'socails')
+                    'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'socials')
                 ],
                 'timestamp' => $deposit->created_at ? $deposit->created_at->toISOString() : now()->toISOString()
             ];

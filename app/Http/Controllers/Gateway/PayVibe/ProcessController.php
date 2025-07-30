@@ -256,7 +256,7 @@ class ProcessController extends Controller
             if($amountReceived >= 10000){
                 $deposit->charge = $gateWayCurrency->fixed_charge + (round($amountReceived, 2)* (($gateWayCurrency->percent_charge + 0.5) /100));
             }
-            $deposit->amount = $deposit->final_amo - $deposit->charge;
+            $deposit->amount = max(0, $deposit->final_amo - $deposit->charge); // Ensure amount is never negative
             $deposit->save();
         }
     
