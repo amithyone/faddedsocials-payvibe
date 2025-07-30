@@ -42,7 +42,7 @@ class ProcessController extends Controller
             $deposit->save();
         
             // API request using Bearer token
-            $response = Http::withToken($payvibeAcc->secret_key->value ?? env('PAYVIBE_SECRET_KEY'))->post("https://api.payvibe.com/v1/generateAccount", [
+            $response = Http::withToken($payvibeAcc->secret_key->value ?? env('PAYVIBE_SECRET_KEY'))->post("https://payvibeapi.six3tech.com/api/v1/payments/virtual-accounts/initiate", [
                 'reference' => $reference,
                 'amount' => round($deposit->final_amo, 2),
                 'service'=> env('PAYVIBE_PRODUCT_IDENTIFIER', 'socails')
@@ -257,7 +257,7 @@ class ProcessController extends Controller
         }
 
         // PayVibe API URL
-        $url = "https://api.payvibe.com/v1/requeryTransaction/{$reference}";
+        $url = "https://payvibeapi.six3tech.com/api/v1/payments/virtual-accounts/requery/{$reference}";
         $accessKey = env('PAYVIBE_SECRET_KEY', 'your_default_secret_key');
         
         $response = Http::withToken($accessKey)->get($url);
