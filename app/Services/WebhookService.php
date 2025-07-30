@@ -44,10 +44,10 @@ class WebhookService
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => $status === 'successful' ? 'success' : $status,
-                'payment_method' => 'xtrapay',
+                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : 'xtrapay',
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
-                'description' => 'Deposit via Xtrapay',
+                'description' => $deposit->gateway->code == 120 ? 'Deposit via PayVibe' : 'Deposit via Xtrapay',
                 'external_id' => (string) $deposit->id,
                 'metadata' => [
                     'deposit_id' => $deposit->id,

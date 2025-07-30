@@ -107,6 +107,8 @@
                                         <p class="mb-0">Paystack</p>
                                     @elseif($deposit->method_code == 118)
                                         <p class="mb-0">XtraPay</p>
+                                    @elseif($deposit->method_code == 120)
+                                        <p class="mb-0">PayVibe</p>
                                     @else
                                         <p class="mb-0">Referral</p>
                                     @endif
