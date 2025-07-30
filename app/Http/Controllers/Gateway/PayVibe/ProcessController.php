@@ -139,7 +139,17 @@ class ProcessController extends Controller
             $data = $payload;
             $hash = $payload['hash'] ?? $payload['signature'] ?? null;
         }
-        // Structure 3: Check for other common fields
+        // Structure 3: Alternative field names
+        elseif (isset($payload['ref']) || isset($payload['payment_status'])) {
+            $data = $payload;
+            $hash = $payload['hash'] ?? $payload['signature'] ?? null;
+        }
+        // Structure 4: Transaction ID format
+        elseif (isset($payload['transaction_id'])) {
+            $data = $payload;
+            $hash = $payload['hash'] ?? $payload['signature'] ?? null;
+        }
+        // Unknown structure
         else {
             \Log::error('PayVibe IPN: Unknown payload structure', [
                 'payload' => $payload
