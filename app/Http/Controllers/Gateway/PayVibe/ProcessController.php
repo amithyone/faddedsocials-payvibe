@@ -46,6 +46,7 @@ class ProcessController extends Controller
             $url = $baseUrl . '/v1/payments/virtual-accounts/initiate';
             $response = Http::withToken($payvibeAcc->secret_key ?? env('PAYVIBE_SECRET_KEY'))->post($url, [
                 'reference' => $reference,
+                // 'amount' => round($deposit->final_amo, 2), // Commented out as requested
                 'product_identifier'=> env('PAYVIBE_PRODUCT_IDENTIFIER', 'socials')
             ]);
         
