@@ -42,32 +42,34 @@ class ProcessController extends Controller
             $deposit->save();
         
             // API request using Bearer token
-            $response = Http::withToken($payvibeAcc->secret_key->value ?? env('PAYVIBE_SECRET_KEY'))->post("https://payvibeapi.six3tech.com/api/v1/payments/virtual-accounts/initiate", [
+            $baseUrl = config('services.payvibe.base_url', 'https://payvibeapi.six3tech.com/api');
+            $url = $baseUrl . '/v1/payments/virtual-accounts/initiate';
+            $response = Http::withToken($payvibeAcc->secret_key ?? env('PAYVIBE_SECRET_KEY'))->post($url, [
                 'reference' => $reference,
                 'amount' => round($deposit->final_amo, 2),
-                'service'=> env('PAYVIBE_PRODUCT_IDENTIFIER', 'socails')
+                'product_identifier'=> env('PAYVIBE_PRODUCT_IDENTIFIER', 'socials')
             ]);
         
             if ($response->successful()) {
                 $responseData = $response->json();
         
-                if (isset($responseData['statusCode']) && $responseData['statusCode'] == 200 && isset($responseData['data'])) {
+                if (isset($responseData['status']) && $responseData['status'] === true && isset($responseData['data'])) {
                     $accountData = $responseData['data'];
         
                     // Store virtual account details in deposit detail
                     $deposit->detail = [
                         'reference' => $accountData['reference'] ?? $reference,
-                        'virtual_account' => $accountData['accountNumber'] ?? null,
-                        'bank_name' => $accountData['bank'] ?? null,
-                        'account_name' => $accountData['accountName'] ?? null
+                        'virtual_account' => $accountData['virtual_account_number'] ?? null,
+                        'bank_name' => $accountData['bank_name'] ?? null,
+                        'account_name' => $accountData['account_name'] ?? null
                     ];
                     $deposit->save();
         
                     $data = new \stdClass();
                     $data->val = [
-                        'virtual_account' => $accountData['accountNumber'] ?? '',
-                        'bank_name' => $accountData['bank'] ?? '',
-                        'account_name' => $accountData['accountName'] ?? '',
+                        'virtual_account' => $accountData['virtual_account_number'] ?? '',
+                        'bank_name' => $accountData['bank_name'] ?? '',
+                        'account_name' => $accountData['account_name'] ?? '',
                         'amount' => $accountData['amount'],
                         'currency' => $deposit->method_currency,
                         'reference' => $reference,
@@ -257,7 +259,8 @@ class ProcessController extends Controller
         }
 
         // PayVibe API URL
-        $url = "https://payvibeapi.six3tech.com/api/v1/payments/virtual-accounts/requery/{$reference}";
+        $baseUrl = config('services.payvibe.base_url', 'https://payvibeapi.six3tech.com/api');
+        $url = $baseUrl . "/v1/payments/virtual-accounts/requery/{$reference}";
         $accessKey = env('PAYVIBE_SECRET_KEY', 'your_default_secret_key');
         
         $response = Http::withToken($accessKey)->get($url);

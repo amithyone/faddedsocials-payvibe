@@ -30,4 +30,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'payvibe' => [
+        'base_url' => env('PAYVIBE_BASE_URL', 'https://payvibeapi.six3tech.com/api'),
+        'public_key' => env('PAYVIBE_PUBLIC_KEY'),
+        'secret_key' => env('PAYVIBE_SECRET_KEY'),
+        'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'socails'),
+    ],
+
 ];
