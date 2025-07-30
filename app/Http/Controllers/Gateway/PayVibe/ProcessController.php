@@ -278,30 +278,31 @@ class ProcessController extends Controller
         }
         $mismatch = false;
     
-        // For PayVibe, net_amount is the amount after PayVibe's fees, not our fees
-        // We should use the original deposit amount and apply our own charges
-        $originalAmount = $deposit->final_amo;
-        $gateWayCurrency = $deposit->gatewayCurrency();
+                            // For PayVibe, we should use the ACTUAL amount received from PayVibe
+                    // This prevents users from getting credited more than they actually paid
+                    $actualAmountReceived = $amountReceived; // This is the net_amount from PayVibe
+                    $gateWayCurrency = $deposit->gatewayCurrency();
+                    
+                    // Calculate our charges based on the ACTUAL amount received
+                    $deposit->charge = $gateWayCurrency->fixed_charge + (round($actualAmountReceived, 2)* ($gateWayCurrency->percent_charge /100));
+                    if($actualAmountReceived >= 10000){
+                        $deposit->charge = $gateWayCurrency->fixed_charge + (round($actualAmountReceived, 2)* (($gateWayCurrency->percent_charge + 0.5) /100));
+                    }
+                    
+                    // Calculate amount to credit to user (actual amount received minus our charges)
+                    $deposit->amount = max(0, $actualAmountReceived - $deposit->charge);
+                    $deposit->amount = round($deposit->amount / 100) * 100; // Round to nearest 100
         
-        // Calculate our charges based on the original amount
-        $deposit->charge = $gateWayCurrency->fixed_charge + (round($originalAmount, 2)* ($gateWayCurrency->percent_charge /100));
-        if($originalAmount >= 10000){
-            $deposit->charge = $gateWayCurrency->fixed_charge + (round($originalAmount, 2)* (($gateWayCurrency->percent_charge + 0.5) /100));
-        }
-        
-        // Calculate amount to credit to user (original amount minus our charges)
-        $deposit->amount = max(0, $originalAmount - $deposit->charge);
-        $deposit->amount = round($deposit->amount / 100) * 100; // Round to nearest 100
-        
-        // Log the calculation for debugging
-        \Log::info('PayVibe IPN: Amount calculation', [
-            'reference' => $reference,
-            'original_amount' => $originalAmount,
-            'payvibe_net_amount' => $amountReceived,
-            'our_charge' => $deposit->charge,
-            'amount_to_credit' => $deposit->amount,
-            'payvibe_fees' => $originalAmount - $amountReceived
-        ]);
+                            // Log the calculation for debugging
+                    \Log::info('PayVibe IPN: Amount calculation', [
+                        'reference' => $reference,
+                        'actual_amount_received' => $actualAmountReceived,
+                        'payvibe_net_amount' => $amountReceived,
+                        'our_charge' => $deposit->charge,
+                        'amount_to_credit' => $deposit->amount,
+                        'original_deposit_amount' => $deposit->final_amo,
+                        'difference' => $deposit->final_amo - $actualAmountReceived
+                    ]);
         
         $deposit->save();
     
