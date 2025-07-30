@@ -109,41 +109,38 @@ class ProcessController extends Controller
             'all' => $request->all()
         ]);
 
-        // Verify Authorization header
+        // Verify Authorization header (optional for PayVibe)
         $authHeader = $request->header('Authorization');
         
-        if (!$authHeader) {
-            \Log::error('PayVibe IPN: Missing Authorization header', [
-                'has_auth_header' => !empty($authHeader)
+        if ($authHeader) {
+            // Extract Bearer token
+            if (!preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
+                \Log::error('PayVibe IPN: Invalid Authorization header format', [
+                    'auth_header' => $authHeader
+                ]);
+                return response()->json(['error' => 'Invalid Authorization header'], 401);
+            }
+            
+            $receivedToken = $matches[1];
+            
+            // Verify against PayVibe's constant authorization token
+            $expectedToken = 'sk_live_eqnfqzsy0x5qoagvb4v8ong9qqtollc3';
+            
+            if (!hash_equals($expectedToken, $receivedToken)) {
+                \Log::warning('PayVibe IPN: Invalid Authorization token', [
+                    'expected_token' => substr($expectedToken, 0, 10) . '...',
+                    'received_token' => substr($receivedToken, 0, 10) . '...'
+                ]);
+                return response()->json(['error' => 'Invalid token'], 401);
+            }
+            
+            \Log::info('PayVibe IPN: Authorization header verified successfully', [
+                'token_verified' => true,
+                'token_length' => strlen($receivedToken)
             ]);
-            return response()->json(['error' => 'Unauthorized'], 401);
+        } else {
+            \Log::info('PayVibe IPN: No Authorization header provided - proceeding without verification');
         }
-        
-        // Extract Bearer token
-        if (!preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
-            \Log::error('PayVibe IPN: Invalid Authorization header format', [
-                'auth_header' => $authHeader
-            ]);
-            return response()->json(['error' => 'Invalid Authorization header'], 401);
-        }
-        
-        $receivedToken = $matches[1];
-        
-        // Verify against PayVibe's constant authorization token
-        $expectedToken = 'sk_live_eqnfqzsy0x5qoagvb4v8ong9qqtollc3';
-        
-        if (!hash_equals($expectedToken, $receivedToken)) {
-            \Log::warning('PayVibe IPN: Invalid Authorization token', [
-                'expected_token' => substr($expectedToken, 0, 10) . '...',
-                'received_token' => substr($receivedToken, 0, 10) . '...'
-            ]);
-            return response()->json(['error' => 'Invalid token'], 401);
-        }
-        
-        \Log::info('PayVibe IPN: Authorization header verified successfully', [
-            'token_verified' => true,
-            'token_length' => strlen($receivedToken)
-        ]);
 
         // Retrieve JSON payload
         $payload = $request->json()->all();
