@@ -229,6 +229,15 @@ class WebhookService
      */
     public static function sendFailedTransaction(Deposit $deposit, User $user, $reason = 'Transaction failed')
     {
+        // Skip manual payments - they are not instant payment methods
+        if ($deposit->gateway->code == 1000) {
+            Log::info('Skipping failed transaction webhook for manual payment', [
+                'deposit_id' => $deposit->id,
+                'payment_method' => 'manual'
+            ]);
+            return true;
+        }
+        
         // Determine payment method and send appropriate webhook
         $paymentMethod = $deposit->gateway->code ?? '';
         
@@ -244,6 +253,15 @@ class WebhookService
      */
     public static function sendPendingTransaction(Deposit $deposit, User $user)
     {
+        // Skip manual payments - they are not instant payment methods
+        if ($deposit->gateway->code == 1000) {
+            Log::info('Skipping pending transaction webhook for manual payment', [
+                'deposit_id' => $deposit->id,
+                'payment_method' => 'manual'
+            ]);
+            return true;
+        }
+        
         // Determine payment method and send appropriate webhook
         $paymentMethod = $deposit->gateway->code ?? '';
         
@@ -262,6 +280,12 @@ class WebhookService
         // Determine payment method and send appropriate webhook
         $paymentMethod = $deposit->gateway->code ?? '';
         
+        // Only send instant payment methods to webhooks (exclude manual payments)
+        if ($paymentMethod == 1000) {
+            // Manual payments - no webhook needed
+            return true;
+        }
+        
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
             return self::sendToPayVibe($deposit, $user, 'success');
         }
@@ -275,6 +299,15 @@ class WebhookService
      */
     public static function sendCreditedAmountToXtrabusiness(Deposit $deposit, User $user)
     {
+        // Skip manual payments - they are not instant payment methods
+        if ($deposit->gateway->code == 1000) {
+            Log::info('Skipping credited amount webhook for manual payment', [
+                'deposit_id' => $deposit->id,
+                'payment_method' => 'manual'
+            ]);
+            return true;
+        }
+        
         try {
             // Xtrabusiness webhook configuration
             $webhookUrl = env('XTRABUSINESS_WEBHOOK_URL', 'https://xtrapay.cash/webhook');
