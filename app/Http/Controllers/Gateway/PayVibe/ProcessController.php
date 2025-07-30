@@ -109,6 +109,39 @@ class ProcessController extends Controller
             'all' => $request->all()
         ]);
 
+        // Verify Authorization header
+        $authHeader = $request->header('Authorization');
+        $expectedToken = env('PAYVIBE_SECRET_KEY');
+        
+        if (!$authHeader || !$expectedToken) {
+            \Log::error('PayVibe IPN: Missing Authorization header or secret key', [
+                'has_auth_header' => !empty($authHeader),
+                'has_secret_key' => !empty($expectedToken)
+            ]);
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        // Extract Bearer token
+        if (!preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
+            \Log::error('PayVibe IPN: Invalid Authorization header format', [
+                'auth_header' => $authHeader
+            ]);
+            return response()->json(['error' => 'Invalid Authorization header'], 401);
+        }
+        
+        $receivedToken = $matches[1];
+        
+        // Verify the token
+        if (!hash_equals($expectedToken, $receivedToken)) {
+            \Log::warning('PayVibe IPN: Invalid Authorization token', [
+                'expected_token' => substr($expectedToken, 0, 10) . '...',
+                'received_token' => substr($receivedToken, 0, 10) . '...'
+            ]);
+            return response()->json(['error' => 'Invalid token'], 401);
+        }
+        
+        \Log::info('PayVibe IPN: Authorization header verified successfully');
+
         // Retrieve JSON payload
         $payload = $request->json()->all();
         
