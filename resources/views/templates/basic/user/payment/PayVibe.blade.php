@@ -37,10 +37,45 @@
                         </p>
                     </div>
 
-                    {{-- Payment Summary --}}
+                    {{-- Important Instructions --}}
+                    <div class="mt-4">
+                        <div class="alert alert-warning" role="alert">
+                            <p><strong>@lang('Important Transfer Instructions'):</strong> 
+                                @lang('Please copy the transaction reference below and use it as the <b>narration</b> or <b>description</b> when making your transfer. Our customer support will need this reference if you report any issues about this transaction') 
+                            </p>
+                            <div class="d-flex align-items-center">
+                                <span class="value me-2" id="reference">FADDED-{{ $data->val->reference ?? 'N/A' }}</span>
+                                <button class="btn btn-sm copy-btn" onclick="copyToClipboard('reference')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Account Details - Visible on Main Page --}}
                     <div class="border rounded p-4 mt-4">
                         <div class="row">
                             <div class="col-12">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="font-weight-bold">@lang('Bank Name'):</span>
+                                    <span class="value" id="bankName">{{ __($data->val->bank_name ?? 'N/A') }}</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="font-weight-bold">@lang('Account Number'):</span>
+                                    <div class="d-flex align-items-center">
+                                        <span class="value me-2" id="accountNumber">{{ __($data->val->virtual_account ?? 'N/A') }}</span>
+                                        <button class="btn btn-sm copy-btn" onclick="copyToClipboard('accountNumber')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="font-weight-bold">@lang('Account Name'):</span>
+                                    <span class="value">{{ __($data->val->account_name ?? 'N/A') }}</span>
+                                </div>
+                                <hr>
                                 <div class="d-flex justify-content-between mb-3">
                                     <span class="font-weight-bold">@lang('Amount'):</span>
                                     <div class="d-flex align-items-center">
@@ -54,8 +89,8 @@
                                 <div class="d-flex justify-content-between mb-3">
                                     <span class="font-weight-bold">@lang('Reference'):</span>
                                     <div class="d-flex align-items-center">
-                                        <span class="value me-2" id="reference">FADDED-{{ $data->val->reference ?? 'N/A' }}</span>
-                                        <button class="btn btn-sm copy-btn" onclick="copyToClipboard('reference')">
+                                        <span class="value me-2" id="reference2">FADDED-{{ $data->val->reference ?? 'N/A' }}</span>
+                                        <button class="btn btn-sm copy-btn" onclick="copyToClipboard('reference2')">
                                             <i class="fas fa-copy"></i>
                                         </button>
                                     </div>
@@ -64,14 +99,13 @@
                         </div>
                     </div>
 
-                    {{-- Show Account Details Button --}}
+                    {{-- Additional Help Button --}}
                     <button type="button" 
-                            class="btn btn-main btn-lg w-100 pill p-3 mt-4" 
+                            class="btn btn-outline-primary btn-lg w-100 pill p-3 mt-4" 
                             data-toggle="modal" 
-                            data-target="#payvibeAccountModal"
-                            style="background: #00be9c; border: 0px; color:#ffffff;">
-                        <i class="fas fa-university me-2"></i>
-                        @lang('View Virtual Account Details')
+                            data-target="#payvibeAccountModal">
+                        <i class="fas fa-question-circle me-2"></i>
+                        @lang('Need Help? View Transfer Instructions')
                     </button>
 
                     {{-- Warning --}}
@@ -105,83 +139,39 @@
     </div>
 </div>
 
-<!-- PayVibe Account Details Modal -->
+<!-- PayVibe Help Modal -->
 <div class="modal fade" id="payvibeAccountModal" tabindex="-1" role="dialog" aria-labelledby="payvibeAccountModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="payvibeAccountModalLabel">
-                    <i class="fas fa-university me-2"></i>
-                    @lang('PayVibe Virtual Account Details')
+                    <i class="fas fa-question-circle me-2"></i>
+                    @lang('PayVibe Transfer Instructions')
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                {{-- Important Instructions --}}
-                <div class="alert alert-warning" role="alert">
-                    <p><strong>@lang('Important Transfer Instructions'):</strong> 
-                        @lang('Please copy the transaction reference below and use it as the <b>narration</b> or <b>description</b> when making your transfer. Our customer support will need this reference if you report any issues about this transaction') 
-                    </p>
-                    <div class="d-flex align-items-center">
-                        <span class="value me-2" id="modalReference">FADDED-{{ $data->val->reference ?? 'N/A' }}</span>
-                        <button class="btn btn-sm copy-btn" onclick="copyToClipboard('modalReference')">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Account Details --}}
-                <div class="border rounded p-4">
+                {{-- Account Details Summary --}}
+                <div class="alert alert-info" role="alert">
+                    <h6><i class="fas fa-info-circle me-2"></i>@lang('Account Details Summary'):</h6>
                     <div class="row">
-                        <div class="col-12">
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="font-weight-bold">@lang('Bank Name'):</span>
-                                <span class="value" id="modalBankName">{{ __($data->val->bank_name ?? 'N/A') }}</span>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="font-weight-bold">@lang('Account Number'):</span>
-                                <div class="d-flex align-items-center">
-                                    <span class="value me-2" id="modalAccountNumber">{{ __($data->val->virtual_account ?? 'N/A') }}</span>
-                                    <button class="btn btn-sm copy-btn" onclick="copyToClipboard('modalAccountNumber')">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="font-weight-bold">@lang('Account Name'):</span>
-                                <span class="value">{{ __($data->val->account_name ?? 'N/A') }}</span>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="font-weight-bold">@lang('Amount'):</span>
-                                <div class="d-flex align-items-center">
-                                    <span class="value me-2" id="modalAmount">{{ showAmount($data->val->amount) }} {{ __($data->val->currency) }}</span>
-                                    <button class="btn btn-sm copy-btn" onclick="copyToClipboard('modalAmount')">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="font-weight-bold">@lang('Reference'):</span>
-                                <div class="d-flex align-items-center">
-                                    <span class="value me-2" id="modalReference2">FADDED-{{ $data->val->reference ?? 'N/A' }}</span>
-                                    <button class="btn btn-sm copy-btn" onclick="copyToClipboard('modalReference2')">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
+                        <div class="col-md-6">
+                            <strong>@lang('Bank'):</strong> {{ __($data->val->bank_name ?? 'N/A') }}<br>
+                            <strong>@lang('Account Number'):</strong> {{ __($data->val->virtual_account ?? 'N/A') }}<br>
+                            <strong>@lang('Account Name'):</strong> {{ __($data->val->account_name ?? 'N/A') }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>@lang('Amount'):</strong> {{ showAmount($data->val->amount) }} {{ __($data->val->currency) }}<br>
+                            <strong>@lang('Reference'):</strong> FADDED-{{ $data->val->reference ?? 'N/A' }}
                         </div>
                     </div>
                 </div>
 
-                {{-- Additional Instructions --}}
-                <div class="alert alert-info mt-3" role="alert">
-                    <h6><i class="fas fa-info-circle me-2"></i>@lang('How to Transfer'):</h6>
+                {{-- Step-by-Step Instructions --}}
+                <div class="alert alert-primary mt-3" role="alert">
+                    <h6><i class="fas fa-list-ol me-2"></i>@lang('How to Transfer'):</h6>
                     <ol class="mb-0">
                         <li>@lang('Open your bank app or visit your bank')</li>
                         <li>@lang('Select "Transfer" or "Send Money"')</li>
@@ -190,6 +180,17 @@
                         <li>@lang('Use the reference as narration/description')</li>
                         <li>@lang('Complete the transfer')</li>
                     </ol>
+                </div>
+
+                {{-- Important Notes --}}
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>@lang('Important Notes'):</h6>
+                    <ul class="mb-0">
+                        <li>@lang('Transfer the exact amount to avoid issues')</li>
+                        <li>@lang('Use the reference as narration for tracking')</li>
+                        <li>@lang('Your account will be credited automatically')</li>
+                        <li>@lang('This virtual account is valid for this transaction only')</li>
+                    </ul>
                 </div>
             </div>
             <div class="modal-footer">
@@ -269,11 +270,11 @@
     }
 
     function copyAllDetails() {
-        const accountNumber = document.getElementById('modalAccountNumber').innerText;
-        const bankName = document.getElementById('modalBankName').innerText;
-        const accountName = document.querySelector('#payvibeAccountModal .value').innerText;
-        const amount = document.getElementById('modalAmount').innerText;
-        const reference = document.getElementById('modalReference').innerText;
+        const accountNumber = document.getElementById('accountNumber').innerText;
+        const bankName = document.getElementById('bankName').innerText;
+        const accountName = document.querySelector('#payvibeAccountModal .alert-info .col-md-6:first-child').innerText.split('Account Name:')[1].trim();
+        const amount = document.getElementById('amount').innerText;
+        const reference = document.getElementById('reference').innerText;
 
         const allDetails = `Bank: ${bankName}\nAccount Number: ${accountNumber}\nAccount Name: ${accountName}\nAmount: ${amount}\nReference: ${reference}`;
 
