@@ -46,7 +46,6 @@ class ProcessController extends Controller
             $url = $baseUrl . '/v1/payments/virtual-accounts/initiate';
             $response = Http::withToken($payvibeAcc->secret_key ?? env('PAYVIBE_SECRET_KEY'))->post($url, [
                 'reference' => $reference,
-                'amount' => round($deposit->final_amo, 2),
                 'product_identifier'=> env('PAYVIBE_PRODUCT_IDENTIFIER', 'socials')
             ]);
         
@@ -70,7 +69,7 @@ class ProcessController extends Controller
                         'virtual_account' => $accountData['virtual_account_number'] ?? '',
                         'bank_name' => $accountData['bank_name'] ?? '',
                         'account_name' => $accountData['account_name'] ?? '',
-                        'amount' => $accountData['amount'],
+                        'amount' => $deposit->final_amo, // Use deposit amount instead of API response
                         'currency' => $deposit->method_currency,
                         'reference' => $reference,
                         'custom' => $deposit->trx
