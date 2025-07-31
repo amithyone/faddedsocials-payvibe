@@ -148,11 +148,11 @@
                                     </a>
                                 </div>
 
-                                {{-- Show SMM ad after first category, SMS ad after second category --}}
-                                @if($loop->first)
+                                {{-- Show ads after all categories - SMM for odd categories, SMS for even categories --}}
+                                @if($loop->index % 2 == 0)
                                     @php $showSmmAd = true; @endphp
                                     @include($activeTemplate . 'partials/ads')
-                                @elseif($loop->index == 1)
+                                @else
                                     @php $showSmmAd = false; @endphp
                                     @include($activeTemplate . 'partials/ads')
                                 @endif
