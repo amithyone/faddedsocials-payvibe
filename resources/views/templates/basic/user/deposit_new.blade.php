@@ -78,7 +78,7 @@
                                 </select>
                                 <div id="gateway-help" class="form-text">Choose payment method</div>
                                 <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;" role="alert" aria-live="polite">
-                                    <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is disabled for amounts over ₦10,000. Please select another payment method.</small>
+                                    <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is unavailable for amounts over ₦7,500. Please select another payment method.</small>
                                 </div>
                             </div>
                         </div>
@@ -105,7 +105,7 @@
                                     console.log('PayVibe option found:', payvibeOption.length > 0);
                                     console.log('Current gateway value:', gatewaySelect.val());
 
-                                    if (amount > 10000) {
+                                    if (amount > 7500) {
                                         payvibeOption.prop('disabled', true);
                                         payvibeNotice.show();
                                         console.log('Disabled PayVibe');
