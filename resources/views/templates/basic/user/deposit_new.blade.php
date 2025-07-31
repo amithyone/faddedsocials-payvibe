@@ -54,7 +54,7 @@
                                 <div class="payment-gateways">
                                     @foreach ($gateway_currency as $data)
                                         <div class="form-check mb-2 gateway-option" data-method-code="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
-                                            <input class="form-check-input" type="radio" name="gateway" id="gateway_{{ $data->method_code }}" value="{{ $data->method_code }}" required>
+                                            <input class="form-check-input" type="radio" name="gateway" id="gateway_{{ $data->method_code }}" value="{{ $data->method_code }}">
                                             <label class="form-check-label" for="gateway_{{ $data->method_code }}">
                                                 {{ $data->name }}
                                             </label>
@@ -244,6 +244,32 @@
                 }
             }
         }
+
+        // Form validation
+        $('form').on('submit', function(e) {
+            var amount = parseInt($('input[name="amount"]').val()) || 0;
+            var selectedGateway = $('input[name="gateway"]:checked').val();
+            
+            if (amount < 2000) {
+                alert('Minimum amount is ₦2,000');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (amount > 500000) {
+                alert('Maximum amount is ₦500,000');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (!selectedGateway) {
+                alert('Please select a payment method');
+                e.preventDefault();
+                return false;
+            }
+            
+            console.log('Form validation passed');
+        });
 
         // Run when user types
         $('input[name="amount"]').on('input', togglePaymentGateways);
