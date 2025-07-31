@@ -62,7 +62,7 @@
                                         @endif
                                     @endforeach
                                 </select>
-                                <div id="gateway-help" class="form-text">Choose your preferred payment method</div>
+                                <div id="gateway-help" class="form-text">PayVibe is unavailable for amounts over ₦10,000. Please select another payment method</div>
                                 <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;" role="alert" aria-live="polite">
                                     <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is disabled for amounts over ₦10,000. Please select another payment method.</small>
                                 </div>
@@ -75,6 +75,69 @@
                                     class="btn btn-main btn-lg w-100 pill p-3" id="btn-confirm">@lang('Continue')
                             </button>
                         </div>
+
+                        <script>
+                            $(document).ready(function() {
+                                console.log('PayVibe disable filter loaded');
+                                console.log('jQuery version:', $.fn.jquery);
+
+                                function togglePayVibe() {
+                                    var amount = parseInt($('input[name="amount"]').val()) || 0;
+                                    var payvibeOption = $('#gateway option[value="120"]');
+                                    var payvibeNotice = $('#payvibe-notice');
+                                    var gatewaySelect = $('#gateway');
+
+                                    console.log('Amount:', amount);
+                                    console.log('PayVibe option found:', payvibeOption.length > 0);
+                                    console.log('Current gateway value:', gatewaySelect.val());
+
+                                    if (amount > 10000) {
+                                        payvibeOption.prop('disabled', true);
+                                        payvibeNotice.show();
+                                        console.log('Disabled PayVibe');
+                                        
+                                        // If PayVibe is currently selected, clear the selection
+                                        if (gatewaySelect.val() == '120') {
+                                            gatewaySelect.val('');
+                                            console.log('Cleared PayVibe selection');
+                                        }
+                                    } else {
+                                        payvibeOption.prop('disabled', false);
+                                        payvibeNotice.hide();
+                                        console.log('Enabled PayVibe');
+                                    }
+                                }
+
+                                // Set payment method based on selected gateway
+                                $('#gateway').on('change', function() {
+                                    console.log('Gateway changed to:', $(this).val());
+                                    var methodCode = $(this).val();
+                                    var paymentMethod = '';
+                                    
+                                    if (methodCode == '118') {
+                                        paymentMethod = 'xtrapay';
+                                    } else if (methodCode == '120') {
+                                        paymentMethod = 'payvibe';
+                                    } else if (methodCode == '1000') {
+                                        paymentMethod = 'manual';
+                                    }
+                                    
+                                    $('#payment_method').val(paymentMethod);
+                                    var selectedOption = $(this).find('option:selected');
+                                    $('input[name=currency]').val(selectedOption.data('currency'));
+                                });
+
+                                // Monitor amount input
+                                $('input[name="amount"]').on('input', function() {
+                                    console.log('Amount changed:', $(this).val());
+                                    togglePayVibe();
+                                });
+
+                                // Initial run
+                                console.log('Running initial togglePayVibe');
+                                togglePayVibe();
+                            });
+                        </script>
             </form>
 
             <a href="https://t.me/faddedsocailsmanual"
@@ -201,73 +264,6 @@
 </div>
 
 @endsection
-
-@push('script')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
-    $(document).ready(function() {
-        console.log('PayVibe disable filter loaded');
-        console.log('jQuery version:', $.fn.jquery);
-
-        function togglePayVibe() {
-            var amount = parseInt($('input[name="amount"]').val()) || 0;
-            var payvibeOption = $('#gateway option[value="120"]');
-            var payvibeNotice = $('#payvibe-notice');
-            var gatewaySelect = $('#gateway');
-
-            console.log('Amount:', amount);
-            console.log('PayVibe option found:', payvibeOption.length > 0);
-            console.log('Current gateway value:', gatewaySelect.val());
-
-            if (amount > 10000) {
-                payvibeOption.prop('disabled', true);
-                payvibeNotice.show();
-                console.log('Disabled PayVibe');
-                
-                // If PayVibe is currently selected, clear the selection
-                if (gatewaySelect.val() == '120') {
-                    gatewaySelect.val('');
-                    console.log('Cleared PayVibe selection');
-                }
-            } else {
-                payvibeOption.prop('disabled', false);
-                payvibeNotice.hide();
-                console.log('Enabled PayVibe');
-            }
-        }
-
-        // Set payment method based on selected gateway
-        $('#gateway').on('change', function() {
-            console.log('Gateway changed to:', $(this).val());
-            var methodCode = $(this).val();
-            var paymentMethod = '';
-            
-            if (methodCode == '118') {
-                paymentMethod = 'xtrapay';
-            } else if (methodCode == '120') {
-                paymentMethod = 'payvibe';
-            } else if (methodCode == '1000') {
-                paymentMethod = 'manual';
-            }
-            
-            $('#payment_method').val(paymentMethod);
-            var selectedOption = $(this).find('option:selected');
-            $('input[name=currency]').val(selectedOption.data('currency'));
-        });
-
-        // Monitor amount input
-        $('input[name="amount"]').on('input', function() {
-            console.log('Amount changed:', $(this).val());
-            togglePayVibe();
-        });
-
-        // Initial run
-        console.log('Running initial togglePayVibe');
-        togglePayVibe();
-    });
-</script>
-@endpush
 
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">
