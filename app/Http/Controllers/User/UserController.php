@@ -288,6 +288,11 @@ class UserController extends Controller
                 return $amount < 10000;
             }
             
+            // Payaza (method_code 119) - show for amounts 10,000 and above
+            if ($gateway->method_code == 119) {
+                return $amount >= 10000;
+            }
+            
             // Xtrapay (method_code 118) - show for amounts 10,000 and above
             if ($gateway->method_code == 118) {
                 return $amount >= 10000;

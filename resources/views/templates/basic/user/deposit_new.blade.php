@@ -64,7 +64,7 @@
                                     <small>
                                         <strong>Payment Method Guidelines:</strong><br>
                                         • <strong>PayVibe:</strong> Available for amounts below ₦10,000<br>
-                                        • <strong>Xtrapay & Manual Payment:</strong> Available for amounts ₦10,000 and above
+                                        • <strong>Payaza:</strong> Available for amounts ₦10,000 and above
                                     </small>
                                 </div>
                             </div>
@@ -231,6 +231,10 @@
                 if (methodCode == 120) {
                     showOption = amount < 10000;
                 }
+                // Payaza (method_code 119) - show for amounts 10,000 and above
+                else if (methodCode == 119) {
+                    showOption = amount >= 10000;
+                }
                 // Xtrapay (method_code 118) - show for amounts 10,000 and above
                 else if (methodCode == 118) {
                     showOption = amount >= 10000;
@@ -311,9 +315,9 @@
             var $paymentInfo = $('#payment-info');
             if (amount > 0) {
                 if (amount < 10000) {
-                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>PayVibe:</strong> Available for amounts below ₦10,000<br>• <strong>Xtrapay & Manual Payment:</strong> Available for amounts ₦10,000 and above</small>');
+                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>PayVibe:</strong> Available for amounts below ₦10,000<br>• <strong>Payaza:</strong> Available for amounts ₦10,000 and above</small>');
                 } else {
-                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>Xtrapay & Manual Payment:</strong> Available for amounts ₦10,000 and above<br>• <strong>PayVibe:</strong> Available for amounts below ₦10,000</small>');
+                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>Payaza:</strong> Available for amounts ₦10,000 and above<br>• <strong>PayVibe:</strong> Available for amounts below ₦10,000</small>');
                 }
             }
         });
