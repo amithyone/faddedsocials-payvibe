@@ -51,7 +51,7 @@
                         <div class="p-3" id="payment-method-section" style="display: none;">
                             <div class="card-body">
                                 <h6 class="mb-2">Select Payment Gateway</h6>
-                                <select name="gateway" id="gateway" class="form-control" required>
+                                <select name="gateway" id="gateway" class="form-control">
                                     <option value="">Choose a payment method...</option>
                                     @foreach ($gateway_currency as $data)
                                         @if($data->method_code == 118 || $data->method_code == 120 || $data->method_code == 1000)
@@ -292,6 +292,35 @@
         // Monitor amount input
         if (amountInput) {
             amountInput.addEventListener('input', togglePaymentSection);
+        }
+
+        // Form validation
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const amount = parseInt(amountInput.value) || 0;
+                const selectedGateway = gatewaySelect.value;
+                
+                if (amount < 2000) {
+                    alert('Minimum amount is ₦2,000');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (amount > 500000) {
+                    alert('Maximum amount is ₦500,000');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (!selectedGateway) {
+                    alert('Please select a payment method');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                console.log('Form validation passed');
+            });
         }
 
         // Initial run
