@@ -210,20 +210,33 @@
             var payvibeOption = $('#gateway option[value="120"]');
             var payvibeNotice = $('#payvibe-notice');
             
+            console.log('Amount:', amount, 'PayVibe option found:', payvibeOption.length);
+            
+            if (payvibeOption.length === 0) {
+                console.log('PayVibe option not found in dropdown');
+                return;
+            }
+            
             if (amount > 10000) {
                 // Hide PayVibe option if amount > 10,000
-                payvibeOption.hide();
+                payvibeOption.prop('disabled', true).hide();
                 payvibeNotice.show();
+                console.log('Hiding PayVibe - amount > 10000');
                 
                 // If PayVibe is currently selected, change to first available option
                 if ($('#gateway').val() == '120') {
-                    $('#gateway option:visible:first').prop('selected', true);
-                    $('#gateway').trigger('change');
+                    var firstAvailableOption = $('#gateway option:not([disabled]):first');
+                    if (firstAvailableOption.length > 0) {
+                        firstAvailableOption.prop('selected', true);
+                        $('#gateway').trigger('change');
+                        console.log('Switched from PayVibe to first available option');
+                    }
                 }
             } else {
                 // Show PayVibe option if amount <= 10,000
-                payvibeOption.show();
+                payvibeOption.prop('disabled', false).show();
                 payvibeNotice.hide();
+                console.log('Showing PayVibe - amount <= 10000');
             }
         }
         
@@ -248,17 +261,21 @@
 
         // Monitor amount input for changes
         $('input[name="amount"]').on('input', function() {
+            console.log('Amount input changed:', $(this).val());
             filterPayVibeOption();
         });
 
-        // Trigger change event on page load to set initial payment method
-        $('#gateway').trigger('change');
-        
-        // Initial filter on page load
-        filterPayVibeOption();
-
-        // Show maintenance modal on page load
+        // Wait for DOM to be ready
         $(document).ready(function() {
+            console.log('DOM ready, initializing PayVibe filter');
+            
+            // Initial filter on page load
+            filterPayVibeOption();
+            
+            // Trigger change event on page load to set initial payment method
+            $('#gateway').trigger('change');
+            
+            // Show maintenance modal on page load
             $('#maintenanceModal').modal('show');
         });
     })(jQuery);
