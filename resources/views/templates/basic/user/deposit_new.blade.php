@@ -22,8 +22,12 @@
                 </div>
             @endif
 
-            <!-- Step 1: Amount Input -->
-            <div id="step1" class="amount-step">
+            <form action="{{ route('user.deposit.insert') }}" method="POST">
+                @csrf
+                <input type="hidden" name="currency" value="NGN">
+                <input type="hidden" name="id" value="0">
+                <input type="hidden" name="qty" value="1">
+
                 <div class="dashboard-body__content">
                     <div class="dashboard-body__item-wrapper">
                         <div class="p-3">
@@ -39,83 +43,42 @@
                         <div class="p-3">
                             <div class="card-body">
                                 <h6>Enter Amount (NGN)</h6>
-                                <input type="number" id="amount-input" class="form-control" required min="2000" max="500000" placeholder="Enter amount">
-                                <div id="amount-error" class="text-danger mt-2" style="display: none;">
-                                    PayVibe is not available for amounts over ₦10,000. Please enter a lower amount or select another payment method.
+                                <input type="number" name="amount" class="form-control" required min="2000" max="500000">
+                                <input type="text" id="payment_method" name="payment" hidden>
+                            </div>
+                        </div>
+
+                        <div class="p-3">
+                            <div class="card-body">
+                                <h6 class="mb-2">Select Payment Gateway</h6>
+                                <div class="payment-gateways">
+                                    @foreach ($gateway_currency as $data)
+                                        <div class="form-check mb-2 gateway-option" data-method-code="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
+                                            <input class="form-check-input" type="radio" name="gateway" id="gateway_{{ $data->method_code }}" value="{{ $data->method_code }}" required>
+                                            <label class="form-check-label" for="gateway_{{ $data->method_code }}">
+                                                {{ $data->name }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div id="payvibe-notice" class="alert alert-info" style="display: none;">
+                                    <small><i class="fas fa-info-circle"></i> PayVibe is not available for amounts over ₦10,000. Please select another payment method.</small>
                                 </div>
                             </div>
                         </div>
 
                         <div class="p-3">
-                            <button type="button" id="continue-btn" 
+                            <button type="submit"
                                     style="background: #20CCB4FF; border: 0px; color: white"
-                                    class="btn btn-main btn-lg w-100 pill p-3">Continue to Payment Method
+                                    class="btn btn-main btn-lg w-100 pill p-3" id="btn-confirm">@lang('Continue')
                             </button>
                         </div>
-                    </div>
-                </div>
-            </div>
+            </form>
 
-            <!-- Step 2: Payment Method Selection -->
-            <div id="step2" class="payment-step" style="display: none;">
-                <form action="{{ route('user.deposit.insert') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="currency" value="NGN">
-                    <input type="hidden" name="id" value="0">
-                    <input type="hidden" name="qty" value="1">
-                    <input type="hidden" id="final-amount" name="amount" value="">
-                    <input type="text" id="payment_method" name="payment" hidden>
-
-                    <div class="dashboard-body__content">
-                        <div class="dashboard-body__item-wrapper">
-                            <div class="p-3">
-                                <h6>Selected Amount: ₦<span id="display-amount">0</span></h6>
-                                <button type="button" id="back-btn" class="btn btn-secondary btn-sm">← Back to Amount</button>
-                            </div>
-
-                            <div class="p-3">
-                                <div class="card-body">
-                                    <h6 class="mb-2">Select Payment Gateway</h6>
-                                    <div class="payment-gateways">
-                                        @foreach ($gateway_currency as $data)
-                                            @if($data->method_code == 120)
-                                                <!-- PayVibe option - will be conditionally shown -->
-                                                <div class="form-check mb-2 gateway-option payvibe-option" data-method-code="{{ $data->method_code }}" data-currency="{{ $data->currency }}" style="display: none;">
-                                                    <input class="form-check-input" type="radio" name="gateway" id="gateway_{{ $data->method_code }}" value="{{ $data->method_code }}" required>
-                                                    <label class="form-check-label" for="gateway_{{ $data->method_code }}">
-                                                        {{ $data->name }}
-                                                    </label>
-                                                </div>
-                                            @else
-                                                <!-- Other payment options -->
-                                                <div class="form-check mb-2 gateway-option" data-method-code="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
-                                                    <input class="form-check-input" type="radio" name="gateway" id="gateway_{{ $data->method_code }}" value="{{ $data->method_code }}" required>
-                                                    <label class="form-check-label" for="gateway_{{ $data->method_code }}">
-                                                        {{ $data->name }}
-                                                    </label>
-                                                </div>
-                                            @endif
-                                        @endforeach
-                                    </div>
-                                    <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;">
-                                        <small><i class="fas fa-info-circle"></i> PayVibe is not available for amounts over ₦10,000. Please select another payment method.</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-3">
-                                <button type="submit"
-                                        style="background: #20CCB4FF; border: 0px; color: white"
-                                        class="btn btn-main btn-lg w-100 pill p-3" id="btn-confirm">@lang('Continue')
-                                </button>
-                            </div>
-                </form>
-
-                <a href="https://t.me/faddedsocailsmanual"
-                   class="btn btn-warning w-100 my-3"> Having Manual Payment issues? Click here to Resolve</a>
-                   <a href="https://api.whatsapp.com/send/?phone=17864041871&text&type=phone_number&app_absent=0"
-                   class="btn btn-warning w-100 my-3"> Having Instant payment issues? Click here to Resolve</a>
-            </div>
+            <a href="https://t.me/faddedsocailsmanual"
+               class="btn btn-warning w-100 my-3"> Having Manual Payment issues? Click here to Resolve</a>
+               <a href="https://api.whatsapp.com/send/?phone=17864041871&text&type=phone_number&app_absent=0"
+               class="btn btn-warning w-100 my-3"> Having Instant payment issues? Click here to Resolve</a>
         </div>
     </div>
 
@@ -138,132 +101,192 @@
                         <tbody>
                         @forelse($deposits as $deposit)
                             <tr>
-                                <td data-label="@lang('Date')">
-                                    {{ showDateTime($deposit->created_at) }}
+                                <td>
+                                    {{ diffForHumans($deposit->created_at) }}
                                 </td>
-                                <td data-label="@lang('Type')">
-                                    <span class="fw-bold">{{ __($deposit->gateway->name) }}</span>
-                                </td>
-                                <td data-label="@lang('Amount')">
-                                    <strong>{{ getAmount($deposit->amount) }} {{ __($general->cur_text) }}</strong>
-                                </td>
-                                <td data-label="@lang('Status')">
-                                    @php
-                                        $status = $deposit->status == Status::PAYMENT_SUCCESS ? 'trans' : 'trans2';
-                                    @endphp
-                                    <span class="badge badge--{{ $status }}">{{ __($deposit->statusText) }}</span>
-                                </td>
-                                <td data-label="@lang('Verify')">
-                                    @if($deposit->status == Status::PAYMENT_PENDING)
-                                        <a href="javascript:void(0)" class="btn btn-sm btn-outline--success confirmationBtn"
-                                           data-action="{{ route('user.deposit.confirm') }}"
-                                           data-question="@lang('Are you sure to confirm this transaction?')"
-                                           data-id="{{ $deposit->id }}">
-                                            <i class="las la-check"></i> @lang('Confirm')
-                                        </a>
+                                <td>
+                                    @if($deposit->method_code == 1000)
+                                        <p class="mb-0 text-small">Manual</p>
+                                    @elseif($deposit->method_code == 107)
+                                        <p class="mb-0">Paystack</p>
+                                    @elseif($deposit->method_code == 118)
+                                        <p class="mb-0">XtraPay</p>
+                                    @elseif($deposit->method_code == 120)
+                                        <p class="mb-0">PayVibe</p>
                                     @else
-                                        <span class="text-muted">@lang('N/A')</span>
+                                        <p class="mb-0">Referral</p>
                                     @endif
                                 </td>
+                                <td>
+                                    <p>{{number_format($deposit->amount, 2)}}</p>
+                                </td>
+                                <td>
+                                    @if($deposit->status == 1)
+                                        <a href="#" class="btn btn-success btn-sm">Completed</a>
+                                    @elseif($deposit->status == 2)
+                                        <a href="#" class="btn btn-warning btn-sm">Pending</a>
+                                    @elseif($deposit->status == 3)
+                                        <a href="#" class="btn btn-danger btn-sm">Rejected</a>
+                                    @else
+                                        <a href="#" class="btn btn-warning btn-sm">Pending</a>
+                                    @endif
+                                </td>
+                                <td>
+                                @if($deposit->method_code == 118 && $deposit->status == 0)
+                                <a href="/user/xtrapay/verify/{{ $deposit->trx }}"
+                                       class="btn btn-primary btn-sm">
+                                        Verify
+                                    </a>
+                                @endif
+                            </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="100%" class="text-center">{{ __($emptyMessage) }}</td>
-                            </tr>
+                            <div class="card">
+                                <div class="card-body text-center p-4">
+                                    <svg width="40" height="40" viewBox="0 0 25 25" fill="none"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M0.699126 22.1299L11.4851 0.936473C11.6065 0.697285 11.7856 0.49768 12.0036 0.358621C12.2215 0.219562 12.4703 0.146179 12.7237 0.146179C12.9772 0.146179 13.2259 0.219562 13.4439 0.358621C13.6618 0.49768 13.841 0.697285 13.9624 0.936473L24.7483 22.1299C24.8658 22.3607 24.9253 22.6205 24.9209 22.8835C24.9165 23.1466 24.8484 23.4039 24.7234 23.6301C24.5983 23.8562 24.4206 24.0434 24.2078 24.1732C23.995 24.303 23.7543 24.3708 23.5097 24.3701H1.93781C1.69314 24.3708 1.45252 24.303 1.23968 24.1732C1.02684 24.0434 0.849131 23.8562 0.724084 23.6301C0.599037 23.4039 0.530969 23.1466 0.526592 22.8835C0.522216 22.6205 0.581682 22.3607 0.699126 22.1299ZM14.2252 14.2749L14.9815 9.39487C15.0039 9.25037 14.9967 9.10237 14.9605 8.96116C14.9243 8.81995 14.8599 8.6889 14.7719 8.57713C14.6838 8.46536 14.5742 8.37554 14.4506 8.31391C14.327 8.25228 14.1925 8.22033 14.0563 8.22026H11.3912C11.255 8.22033 11.1204 8.25228 10.9969 8.31391C10.8733 8.37554 10.7637 8.46536 10.6756 8.57713C10.5876 8.6889 10.5232 8.81995 10.487 8.96116C10.4508 9.10237 10.4436 9.25037 10.466 9.39487L11.2223 14.2749H14.2252ZM14.7882 18.1096C14.7882 17.5208 14.5707 16.9561 14.1835 16.5398C13.7964 16.1234 13.2713 15.8895 12.7237 15.8895C12.1762 15.8895 11.6511 16.1234 11.2639 16.5398C10.8768 16.9561 10.6593 17.5208 10.6593 18.1096C10.6593 18.6984 10.8768 19.2631 11.2639 19.6794C11.6511 20.0957 12.1762 20.3296 12.7237 20.3296C13.2713 20.3296 13.7964 20.0957 14.1835 19.6794C14.5707 19.2631 14.7882 18.6984 14.7882 18.1096Z"
+                                            fill="#EA4335"/>
+                                    </svg>
+                                    <br><br>
+                                    <h6>No data found</h6>
+                                </div>
+                            </div>
                         @endforelse
                         </tbody>
                     </table>
+
+                    <div class="d-flex justify-content-start my-3">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination common-pagination mt-0">
+                                <li class="page-item"> {{ paginateLinks($deposits) }}</li>
+                                <li class="page-item active"></li>
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div class="row p-3">
+            <div class="col-12">
+            </div>
+            <div class="col-md-12">
+            </div>
+        </div>
     </div>
+</div>
+
+<!-- Maintenance Modal -->
+<div class="modal fade" id="maintenanceModal" tabindex="-1" role="dialog" aria-labelledby="maintenanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="maintenanceModalLabel">Maintenance Mode</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                The site is currently in maintenance mode. You may experience delays in top-up transactions.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('script')
 <script>
-    console.log('Two-step payment form script loaded');
-    
+    // Immediate execution to avoid conflicts with other scripts
     (function() {
-        console.log('Initializing two-step payment form');
+        console.log('PayVibe filter script loaded - IMMEDIATE EXECUTION');
         
         // Wait for DOM to be ready
-        function initPaymentForm() {
-            console.log('DOM ready, initializing payment form');
+        function initPayVibeFilter() {
+            console.log('=== INITIALIZING PAYVIBE FILTER ===');
             
             // Check if jQuery is available
             if (typeof $ === 'undefined') {
                 console.log('jQuery not available, trying again in 500ms');
-                setTimeout(initPaymentForm, 500);
+                setTimeout(initPayVibeFilter, 500);
                 return;
             }
             
             console.log('jQuery available:', typeof $ !== 'undefined');
             
-            var amountInput = $('#amount-input');
-            var continueBtn = $('#continue-btn');
-            var backBtn = $('#back-btn');
-            var step1 = $('#step1');
-            var step2 = $('#step2');
-            var displayAmount = $('#display-amount');
-            var finalAmount = $('#final-amount');
-            var payvibeOption = $('.payvibe-option');
-            var payvibeNotice = $('#payvibe-notice');
-            var amountError = $('#amount-error');
-            
-            console.log('Elements found:', {
-                amountInput: amountInput.length,
-                continueBtn: continueBtn.length,
-                step1: step1.length,
-                step2: step2.length,
-                payvibeOption: payvibeOption.length
-            });
-            
-            // Continue button click
-            continueBtn.on('click', function() {
-                console.log('Continue button clicked');
-                var amount = parseInt(amountInput.val()) || 0;
-                console.log('Amount entered:', amount);
+            // Function to filter PayVibe option based on amount
+            function filterPayVibeOption() {
+                console.log('=== filterPayVibeOption called ===');
+                var amount = parseInt($('input[name="amount"]').val()) || 0;
+                var payvibeOption = $('.gateway-option[data-method-code="120"]');
+                var payvibeRadio = $('#gateway_120');
+                var payvibeNotice = $('#payvibe-notice');
                 
-                if (amount < 2000) {
-                    alert('Minimum amount is ₦2,000');
-                    return;
-                }
+                console.log('Amount:', amount);
+                console.log('PayVibe option found:', payvibeOption.length);
+                console.log('PayVibe radio found:', payvibeRadio.length);
+                console.log('PayVibe notice found:', payvibeNotice.length);
+                console.log('All gateway options:', $('.gateway-option').length);
                 
-                if (amount > 500000) {
-                    alert('Maximum amount is ₦500,000');
-                    return;
-                }
+                // List all gateway options for debugging
+                $('.gateway-option').each(function() {
+                    var methodCode = $(this).data('method-code');
+                    var label = $(this).find('label').text().trim();
+                    var isVisible = $(this).is(':visible');
+                    console.log('Gateway:', methodCode, 'Label:', label, 'Visible:', isVisible);
+                });
                 
-                // Set the amount
-                displayAmount.text(amount);
-                finalAmount.val(amount);
-                
-                // Show/hide PayVibe based on amount
                 if (amount > 10000) {
-                    console.log('Amount > 10000, hiding PayVibe');
+                    console.log('=== HIDING PAYVIBE - Amount > 10000 ===');
+                    
+                    // Multiple approaches to hide PayVibe
                     payvibeOption.hide();
+                    payvibeOption.css('display', 'none');
+                    payvibeOption.addClass('d-none');
+                    payvibeRadio.prop('disabled', true);
+                    payvibeRadio.prop('checked', false);
                     payvibeNotice.show();
-                    amountError.hide();
+                    
+                    console.log('PayVibe hidden with multiple methods');
+                    console.log('PayVibe option visible after hide:', payvibeOption.is(':visible'));
+                    
+                    // If PayVibe is currently selected, change to first available option
+                    if (payvibeRadio.is(':checked')) {
+                        console.log('PayVibe was selected, switching to first available');
+                        var firstAvailableRadio = $('.gateway-option:visible input[type="radio"]:first');
+                        console.log('First available radio found:', firstAvailableRadio.length);
+                        if (firstAvailableRadio.length > 0) {
+                            firstAvailableRadio.prop('checked', true);
+                            firstAvailableRadio.trigger('change');
+                            console.log('Switched from PayVibe to first available option');
+                        }
+                    }
+                    
+                    // Force check again after hiding
+                    setTimeout(function() {
+                        console.log('=== DOUBLE CHECK ===');
+                        console.log('PayVibe option still visible:', payvibeOption.is(':visible'));
+                        console.log('PayVibe radio checked:', payvibeRadio.is(':checked'));
+                        console.log('PayVibe radio disabled:', payvibeRadio.prop('disabled'));
+                    }, 100);
+                    
                 } else {
-                    console.log('Amount <= 10000, showing PayVibe');
+                    console.log('=== SHOWING PAYVIBE - Amount <= 10000 ===');
+                    
+                    // Show PayVibe option if amount <= 10,000
                     payvibeOption.show();
+                    payvibeOption.css('display', 'block');
+                    payvibeOption.removeClass('d-none');
+                    payvibeRadio.prop('disabled', false);
                     payvibeNotice.hide();
-                    amountError.hide();
+                    console.log('Shown PayVibe - amount <= 10000');
                 }
-                
-                // Show step 2
-                step1.hide();
-                step2.show();
-                console.log('Switched to step 2');
-            });
-            
-            // Back button click
-            backBtn.on('click', function() {
-                console.log('Back button clicked');
-                step2.hide();
-                step1.show();
-                console.log('Switched back to step 1');
-            });
+            }
             
             // Set payment method based on selected gateway
             $('input[name="gateway"]').on('change', function() {
@@ -285,27 +308,43 @@
                 var selectedOption = $('.gateway-option[data-method-code="' + methodCode + '"]');
                 $('input[name=currency]').val(selectedOption.data('currency'));
             });
+
+            // Monitor amount input for changes
+            $('input[name="amount"]').on('input', function() {
+                console.log('Amount input changed:', $(this).val());
+                filterPayVibeOption();
+            });
+
+            // Test if basic elements exist
+            console.log('Amount input exists:', $('input[name="amount"]').length);
+            console.log('Gateway options exist:', $('.gateway-option').length);
+            console.log('PayVibe notice exists:', $('#payvibe-notice').length);
             
-            // Auto-select first available payment method
-            setTimeout(function() {
-                var firstRadio = $('input[name="gateway"]:visible:first');
-                if (firstRadio.length > 0) {
-                    firstRadio.prop('checked', true).trigger('change');
-                    console.log('Auto-selected first payment method');
-                }
-            }, 100);
+            // List all gateway options
+            $('.gateway-option').each(function() {
+                console.log('Gateway option:', $(this).data('method-code'), $(this).find('label').text());
+            });
+            
+            // Initial filter on page load
+            filterPayVibeOption();
+            
+            // Trigger change event on page load to set initial payment method
+            $('input[name="gateway"]:first').trigger('change');
+            
+            // Show maintenance modal on page load
+            $('#maintenanceModal').modal('show');
         }
         
         // Try to initialize immediately
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPaymentForm);
+            document.addEventListener('DOMContentLoaded', initPayVibeFilter);
         } else {
-            initPaymentForm();
+            initPayVibeFilter();
         }
         
         // Also try with jQuery ready as backup
         if (typeof $ !== 'undefined') {
-            $(document).ready(initPaymentForm);
+            $(document).ready(initPayVibeFilter);
         }
         
     })();
