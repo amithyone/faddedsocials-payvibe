@@ -201,16 +201,22 @@
 
 @push('script')
 <script>
+    console.log('PayVibe filter script loaded');
+    
     (function ($) {
         "use strict";
         
+        console.log('jQuery available:', typeof $ !== 'undefined');
+        
         // Function to filter PayVibe option based on amount
         function filterPayVibeOption() {
+            console.log('filterPayVibeOption called');
             var amount = parseInt($('input[name="amount"]').val()) || 0;
             var payvibeOption = $('#gateway option[value="120"]');
             var payvibeNotice = $('#payvibe-notice');
             
             console.log('Amount:', amount, 'PayVibe option found:', payvibeOption.length);
+            console.log('Gateway dropdown found:', $('#gateway').length);
             
             if (payvibeOption.length === 0) {
                 console.log('PayVibe option not found in dropdown');
@@ -242,6 +248,7 @@
         
         // Set payment method based on selected gateway
         $('#gateway').on('change', function() {
+            console.log('Gateway changed to:', $(this).val());
             var methodCode = $(this).val();
             var paymentMethod = '';
             
@@ -268,6 +275,16 @@
         // Wait for DOM to be ready
         $(document).ready(function() {
             console.log('DOM ready, initializing PayVibe filter');
+            
+            // Test if basic elements exist
+            console.log('Amount input exists:', $('input[name="amount"]').length);
+            console.log('Gateway dropdown exists:', $('#gateway').length);
+            console.log('PayVibe notice exists:', $('#payvibe-notice').length);
+            
+            // List all gateway options
+            $('#gateway option').each(function() {
+                console.log('Gateway option:', $(this).val(), $(this).text());
+            });
             
             // Initial filter on page load
             filterPayVibeOption();
