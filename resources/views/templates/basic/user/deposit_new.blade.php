@@ -64,7 +64,7 @@
                                 </select>
                                 <div id="gateway-help" class="form-text">Choose your preferred payment method</div>
                                 <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;" role="alert" aria-live="polite">
-                                    <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is not available for amounts over ₦10,000. Please select another payment method.</small>
+                                    <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is disabled for amounts over ₦10,000. Please select another payment method.</small>
                                 </div>
                             </div>
                         </div>
@@ -207,7 +207,7 @@
 
 <script>
     $(document).ready(function() {
-        console.log('Simple PayVibe filter loaded');
+        console.log('PayVibe disable filter loaded');
 
         function togglePayVibe() {
             var amount = parseInt($('input[name="amount"]').val()) || 0;
@@ -217,13 +217,18 @@
             console.log('Amount:', amount);
 
             if (amount > 10000) {
-                payvibeOption.hide();
+                payvibeOption.prop('disabled', true);
                 payvibeNotice.show();
-                console.log('Hidden PayVibe');
+                console.log('Disabled PayVibe');
+                
+                // If PayVibe is currently selected, clear the selection
+                if ($('#gateway').val() == '120') {
+                    $('#gateway').val('');
+                }
             } else {
-                payvibeOption.show();
+                payvibeOption.prop('disabled', false);
                 payvibeNotice.hide();
-                console.log('Shown PayVibe');
+                console.log('Enabled PayVibe');
             }
         }
 
