@@ -208,8 +208,8 @@
         
         console.log('jQuery available:', typeof $ !== 'undefined');
         
-        // Store the original PayVibe option for restoration
-        var originalPayVibeOption = null;
+        // Store the original PayVibe option HTML
+        var originalPayVibeHTML = '';
         
         // Function to filter PayVibe option based on amount
         function filterPayVibeOption() {
@@ -221,10 +221,10 @@
             console.log('Amount:', amount, 'PayVibe option found:', payvibeOption.length);
             console.log('Gateway dropdown found:', $('#gateway').length);
             
-            // Store original PayVibe option if not already stored
-            if (originalPayVibeOption === null && payvibeOption.length > 0) {
-                originalPayVibeOption = payvibeOption.clone();
-                console.log('Stored original PayVibe option');
+            // Store original PayVibe HTML if not already stored
+            if (originalPayVibeHTML === '' && payvibeOption.length > 0) {
+                originalPayVibeHTML = payvibeOption.prop('outerHTML');
+                console.log('Stored original PayVibe HTML');
             }
             
             if (amount > 10000) {
@@ -244,8 +244,8 @@
                 }
             } else {
                 // Add PayVibe option back if amount <= 10,000 and it's not already there
-                if ($('#gateway option[value="120"]').length === 0 && originalPayVibeOption !== null) {
-                    $('#gateway').append(originalPayVibeOption);
+                if ($('#gateway option[value="120"]').length === 0 && originalPayVibeHTML !== '') {
+                    $('#gateway').append(originalPayVibeHTML);
                     console.log('Added PayVibe back - amount <= 10000');
                 }
                 payvibeNotice.hide();
