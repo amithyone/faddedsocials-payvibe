@@ -211,34 +211,67 @@
         
         // Function to filter PayVibe option based on amount
         function filterPayVibeOption() {
-            console.log('filterPayVibeOption called');
+            console.log('=== filterPayVibeOption called ===');
             var amount = parseInt($('input[name="amount"]').val()) || 0;
             var payvibeOption = $('.gateway-option[data-method-code="120"]');
             var payvibeRadio = $('#gateway_120');
             var payvibeNotice = $('#payvibe-notice');
             
-            console.log('Amount:', amount, 'PayVibe option found:', payvibeOption.length);
-            console.log('Payment gateways found:', $('.gateway-option').length);
+            console.log('Amount:', amount);
+            console.log('PayVibe option found:', payvibeOption.length);
+            console.log('PayVibe radio found:', payvibeRadio.length);
+            console.log('PayVibe notice found:', payvibeNotice.length);
+            console.log('All gateway options:', $('.gateway-option').length);
+            
+            // List all gateway options for debugging
+            $('.gateway-option').each(function() {
+                var methodCode = $(this).data('method-code');
+                var label = $(this).find('label').text().trim();
+                var isVisible = $(this).is(':visible');
+                console.log('Gateway:', methodCode, 'Label:', label, 'Visible:', isVisible);
+            });
             
             if (amount > 10000) {
-                // Hide PayVibe option if amount > 10,000
+                console.log('=== HIDING PAYVIBE - Amount > 10000 ===');
+                
+                // Multiple approaches to hide PayVibe
                 payvibeOption.hide();
+                payvibeOption.css('display', 'none');
+                payvibeOption.addClass('d-none');
                 payvibeRadio.prop('disabled', true);
+                payvibeRadio.prop('checked', false);
                 payvibeNotice.show();
-                console.log('Hidden PayVibe - amount > 10000');
+                
+                console.log('PayVibe hidden with multiple methods');
+                console.log('PayVibe option visible after hide:', payvibeOption.is(':visible'));
                 
                 // If PayVibe is currently selected, change to first available option
                 if (payvibeRadio.is(':checked')) {
+                    console.log('PayVibe was selected, switching to first available');
                     var firstAvailableRadio = $('.gateway-option:visible input[type="radio"]:first');
+                    console.log('First available radio found:', firstAvailableRadio.length);
                     if (firstAvailableRadio.length > 0) {
                         firstAvailableRadio.prop('checked', true);
                         firstAvailableRadio.trigger('change');
                         console.log('Switched from PayVibe to first available option');
                     }
                 }
+                
+                // Force check again after hiding
+                setTimeout(function() {
+                    console.log('=== DOUBLE CHECK ===');
+                    console.log('PayVibe option still visible:', payvibeOption.is(':visible'));
+                    console.log('PayVibe radio checked:', payvibeRadio.is(':checked'));
+                    console.log('PayVibe radio disabled:', payvibeRadio.prop('disabled'));
+                }, 100);
+                
             } else {
+                console.log('=== SHOWING PAYVIBE - Amount <= 10000 ===');
+                
                 // Show PayVibe option if amount <= 10,000
                 payvibeOption.show();
+                payvibeOption.css('display', 'block');
+                payvibeOption.removeClass('d-none');
                 payvibeRadio.prop('disabled', false);
                 payvibeNotice.hide();
                 console.log('Shown PayVibe - amount <= 10000');
@@ -274,7 +307,7 @@
 
         // Wait for DOM to be ready
         $(document).ready(function() {
-            console.log('DOM ready, initializing PayVibe filter');
+            console.log('=== DOM READY - INITIALIZING PAYVIBE FILTER ===');
             
             // Test if basic elements exist
             console.log('Amount input exists:', $('input[name="amount"]').length);
