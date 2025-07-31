@@ -208,13 +208,17 @@
 <script>
     $(document).ready(function() {
         console.log('PayVibe disable filter loaded');
+        console.log('jQuery version:', $.fn.jquery);
 
         function togglePayVibe() {
             var amount = parseInt($('input[name="amount"]').val()) || 0;
             var payvibeOption = $('#gateway option[value="120"]');
             var payvibeNotice = $('#payvibe-notice');
+            var gatewaySelect = $('#gateway');
 
             console.log('Amount:', amount);
+            console.log('PayVibe option found:', payvibeOption.length > 0);
+            console.log('Current gateway value:', gatewaySelect.val());
 
             if (amount > 10000) {
                 payvibeOption.prop('disabled', true);
@@ -222,8 +226,9 @@
                 console.log('Disabled PayVibe');
                 
                 // If PayVibe is currently selected, clear the selection
-                if ($('#gateway').val() == '120') {
-                    $('#gateway').val('');
+                if (gatewaySelect.val() == '120') {
+                    gatewaySelect.val('');
+                    console.log('Cleared PayVibe selection');
                 }
             } else {
                 payvibeOption.prop('disabled', false);
@@ -258,6 +263,7 @@
         });
 
         // Initial run
+        console.log('Running initial togglePayVibe');
         togglePayVibe();
     });
 </script>

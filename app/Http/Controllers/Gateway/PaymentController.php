@@ -36,6 +36,12 @@ class PaymentController extends Controller
                 return back()->with('error', $notify);
             }
 
+            // Server-side validation: PayVibe cannot be used for amounts over 10,000
+            if ($request->gateway == 120 && $request->amount > 10000) {
+                $notify = "PayVibe is not available for amounts over ₦10,000. Please select another payment method.";
+                return back()->with('error', $notify);
+            }
+
             // Fetch the gateway currency based on the provided method code and currency
             $gate = GatewayCurrency::whereHas('method', function ($gate) {
                 $gate->where('status', Status::ENABLE);
