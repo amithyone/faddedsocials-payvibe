@@ -43,16 +43,16 @@
                         <div class="p-3">
                             <div class="card-body">
                                 <h6>Enter Amount (NGN)</h6>
-                                <input type="number" name="amount" class="form-control" required min="2000" max="500000">
+                                <input type="number" name="amount" id="amount-input" class="form-control" required min="2000" max="500000" placeholder="Enter the Amount you want to Add">
                                 <input type="text" id="payment_method" name="payment" hidden>
                             </div>
                         </div>
 
-                        <div class="p-3">
+                        <div class="p-3" id="payment-method-section" style="display: none;">
                             <div class="card-body">
                                 <h6 class="mb-2">Select Payment Gateway</h6>
                                 <select name="gateway" id="gateway" class="form-control" required>
-                                    <option value="">Select Payment Method</option>
+                                    <option value="">Choose a payment method...</option>
                                     @foreach ($gateway_currency as $data)
                                         @if($data->method_code == 118 || $data->method_code == 120 || $data->method_code == 1000)
                                             <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
@@ -204,69 +204,99 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    $(document).ready(function() {
+    document.addEventListener('DOMContentLoaded', function() {
         console.log('=== SIMPLIFIED PAYVIBE FILTER ===');
-        console.log('jQuery loaded:', typeof $ !== 'undefined');
         
-        // Store the original PayVibe option
-        var originalPayVibeOption = $('#gateway option[value="120"]').clone();
-        var payvibeNotice = $('#payvibe-notice');
+        const amountInput = document.getElementById('amount-input');
+        const paymentSection = document.getElementById('payment-method-section');
+        const gatewaySelect = document.getElementById('gateway');
+        const payvibeNotice = document.getElementById('payvibe-notice');
         
-        console.log('Original PayVibe option found:', originalPayVibeOption.length);
+        console.log('Elements found:', {
+            amountInput: amountInput ? 'found' : 'not found',
+            paymentSection: paymentSection ? 'found' : 'not found',
+            gatewaySelect: gatewaySelect ? 'found' : 'not found',
+            payvibeNotice: payvibeNotice ? 'found' : 'not found'
+        });
 
+        function togglePaymentSection() {
+            const amount = parseInt(amountInput.value) || 0;
+            console.log('Amount entered:', amount);
+            
+            if (amount && amount >= 2000) {
+                paymentSection.style.display = 'block';
+                paymentSection.style.opacity = '1';
+                console.log('Showing payment section');
+                
+                // Handle PayVibe filtering
+                togglePayVibe();
+            } else {
+                paymentSection.style.display = 'none';
+                paymentSection.style.opacity = '0';
+                console.log('Hiding payment section');
+            }
+        }
+        
         function togglePayVibe() {
-            console.log('=== togglePayVibe called ===');
-            var amount = parseInt($('input[name="amount"]').val()) || 0;
-            console.log('Amount value:', amount);
-
+            const amount = parseInt(amountInput.value) || 0;
+            const payvibeOption = gatewaySelect.querySelector('option[value="120"]');
+            
+            console.log('Amount for PayVibe check:', amount);
+            
             if (amount > 10000) {
                 console.log('Amount > 10000, removing PayVibe');
-                $('#gateway option[value="120"]').remove();
-                payvibeNotice.show();
+                if (payvibeOption) {
+                    payvibeOption.remove();
+                }
+                payvibeNotice.style.display = 'block';
                 
                 // If PayVibe was selected, clear selection
-                if ($('#gateway').val() == '120') {
-                    $('#gateway').val('');
+                if (gatewaySelect.value == '120') {
+                    gatewaySelect.value = '';
                     console.log('PayVibe was selected, clearing selection');
                 }
             } else {
                 console.log('Amount <= 10000, adding PayVibe');
                 // Only add if it doesn't already exist
-                if ($('#gateway option[value="120"]').length === 0) {
-                    $('#gateway').append(originalPayVibeOption);
+                if (!gatewaySelect.querySelector('option[value="120"]')) {
+                    const newOption = document.createElement('option');
+                    newOption.value = '120';
+                    newOption.textContent = 'PayVibe';
+                    gatewaySelect.appendChild(newOption);
                 }
-                payvibeNotice.hide();
+                payvibeNotice.style.display = 'none';
             }
         }
 
-        // Set payment method based on selected gateway (simplified)
-        $('#gateway').on('change', function() {
-            console.log('Gateway changed to:', $(this).val());
-            var methodCode = $(this).val();
-            var paymentMethod = '';
-            
-            if (methodCode == '118') {
-                paymentMethod = 'xtrapay';
-            } else if (methodCode == '120') {
-                paymentMethod = 'payvibe';
-            } else if (methodCode == '1000') {
-                paymentMethod = 'manual';
-            }
-            
-            $('#payment_method').val(paymentMethod);
-            var selectedOption = $(this).find('option:selected');
-            $('input[name=currency]').val(selectedOption.data('currency'));
-        });
+        // Set payment method based on selected gateway
+        if (gatewaySelect) {
+            gatewaySelect.addEventListener('change', function() {
+                console.log('Gateway changed to:', this.value);
+                const methodCode = this.value;
+                let paymentMethod = '';
+                
+                if (methodCode == '118') {
+                    paymentMethod = 'xtrapay';
+                } else if (methodCode == '120') {
+                    paymentMethod = 'payvibe';
+                } else if (methodCode == '1000') {
+                    paymentMethod = 'manual';
+                }
+                
+                document.getElementById('payment_method').value = paymentMethod;
+                const selectedOption = this.options[this.selectedIndex];
+                document.querySelector('input[name=currency]').value = selectedOption.dataset.currency;
+            });
+        }
 
-        // Simple event listener
-        $('input[name="amount"]').on('input', function() {
-            console.log('Amount input changed:', $(this).val());
-            togglePayVibe();
-        });
+        // Monitor amount input
+        if (amountInput) {
+            amountInput.addEventListener('input', togglePaymentSection);
+        }
 
-        // Run once on page load
+        // Initial run
         console.log('=== INITIAL RUN ===');
-        togglePayVibe();
+        togglePaymentSection();
     });
 </script>
 @endpush
