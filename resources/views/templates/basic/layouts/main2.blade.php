@@ -440,7 +440,7 @@
 <script src="{{url('')}}/assets/assets2/js/pcoded.js"></script>
 <script src="{{url('')}}/assets/assets2/js/dz.js"></script>
 <script src="{{url('')}}/assets/assets2/js/plugins/feather.min.js"></script>
-<script src="{{url('')}}/assets/assets2/js/pages/ac-slider.js"></script>
+<!-- Removed problematic scripts: ac-slider.js, datepicker-full.min.js, apexcharts.min.js, course-dashboard.js -->
 <script>layout_change('false');</script>
 
 <script>layout_theme_contrast_change('false');</script>
@@ -448,11 +448,10 @@
 <script>layout_caption_change('true');</script>
 <script>layout_rtl_change('false');</script>
 <script>preset_change('preset-1');</script>
-<script>main_layout_change('vertical');</script><!-- [Page Specific JS] start --><!-- bootstrap-datepicker -->
-<script src="{{url('')}}/assets/assets2/js/plugins/datepicker-full.min.js"></script>
-<script src="{{url('')}}/assets/assets2/js/plugins/apexcharts.min.js"></script>
-<script src="{{url('')}}/assets/assets2/js/plugins/peity-vanilla.min.js"></script>
-<script src="{{url('')}}/assets/assets2/js/pages/course-dashboard.js"></script><!-- [Page Specific JS] end -->
+<script>main_layout_change('vertical');</script>
+<!-- [Page Specific JS] start -->
+<!-- Removed problematic scripts -->
+<!-- [Page Specific JS] end -->
 <!-- [ Main Content ] end --><!-- Required Js -->
 <script src="{{url('')}}/assets/assets2/js/plugins/popper.min.js"></script>
 <script src="{{url('')}}/assets/assets2/js/plugins/simplebar.min.js"></script>
