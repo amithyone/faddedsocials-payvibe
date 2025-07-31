@@ -202,72 +202,28 @@
 
 @push('script')
 <script>
-    console.log('Simple PayVibe filter script loaded');
-    
-    (function() {
-        console.log('Initializing simple PayVibe filter');
+    // Simple PayVibe filter
+    $(document).ready(function() {
+        console.log('Simple PayVibe filter loaded');
         
-        // Wait for DOM to be ready
-        function initSimpleFilter() {
-            console.log('DOM ready, initializing simple filter');
-            
-            // Check if jQuery is available
-            if (typeof $ === 'undefined') {
-                console.log('jQuery not available, trying again in 500ms');
-                setTimeout(initSimpleFilter, 500);
-                return;
-            }
-            
-            console.log('jQuery available:', typeof $ !== 'undefined');
-            
-            var amountInput = $('input[name="amount"]');
+        $('input[name="amount"]').on('input', function() {
+            var amount = parseInt($(this).val()) || 0;
             var payvibeOption = $('.gateway-option[data-method-code="120"]');
             var payvibeNotice = $('#payvibe-notice');
             
-            console.log('Elements found:', {
-                amountInput: amountInput.length,
-                payvibeOption: payvibeOption.length,
-                payvibeNotice: payvibeNotice.length
-            });
+            console.log('Amount:', amount);
             
-            // Function to filter PayVibe
-            function filterPayVibe() {
-                var amount = parseInt(amountInput.val()) || 0;
-                console.log('Amount:', amount);
-                
-                if (amount > 10000) {
-                    console.log('Hiding PayVibe - amount > 10000');
-                    payvibeOption.addClass('d-none');
-                    payvibeNotice.show();
-                } else {
-                    console.log('Showing PayVibe - amount <= 10000');
-                    payvibeOption.removeClass('d-none');
-                    payvibeNotice.hide();
-                }
+            if (amount > 10000) {
+                payvibeOption.hide();
+                payvibeNotice.show();
+                console.log('Hidden PayVibe');
+            } else {
+                payvibeOption.show();
+                payvibeNotice.hide();
+                console.log('Shown PayVibe');
             }
-            
-            // Monitor amount input
-            amountInput.on('input', function() {
-                console.log('Amount changed:', $(this).val());
-                filterPayVibe();
-            });
-            
-            // Initial filter
-            filterPayVibe();
-        }
-        
-        // Initialize
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initSimpleFilter);
-        } else {
-            initSimpleFilter();
-        }
-        
-        if (typeof $ !== 'undefined') {
-            $(document).ready(initSimpleFilter);
-        }
-        
-    })();
+        });
+    });
 </script>
 @endpush
 
