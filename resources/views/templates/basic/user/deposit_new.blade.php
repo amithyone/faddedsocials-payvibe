@@ -43,16 +43,16 @@
                         <div class="p-3">
                             <div class="card-body">
                                 <h6>Enter Amount (NGN)</h6>
-                                <input type="number" name="amount" id="amount-input" class="form-control" required min="2000" max="500000" placeholder="Enter the Amount you want to Add">
+                                <input type="number" name="amount" class="form-control" required min="2000" max="500000">
                                 <input type="text" id="payment_method" name="payment" hidden>
                             </div>
                         </div>
 
-                        <div class="p-3" id="payment-method-section" style="display: none;">
+                        <div class="p-3">
                             <div class="card-body">
                                 <h6 class="mb-2">Select Payment Gateway</h6>
-                                <select name="gateway" id="gateway" class="form-control">
-                                    <option value="">Choose a payment method...</option>
+                                <select name="gateway" id="gateway" class="form-control" required>
+                                    <option value="">Select Payment Method</option>
                                     @foreach ($gateway_currency as $data)
                                         @if($data->method_code == 118 || $data->method_code == 120 || $data->method_code == 1000)
                                             <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
@@ -204,128 +204,54 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('=== SIMPLIFIED PAYVIBE FILTER ===');
-        
-        const amountInput = document.getElementById('amount-input');
-        const paymentSection = document.getElementById('payment-method-section');
-        const gatewaySelect = document.getElementById('gateway');
-        const payvibeNotice = document.getElementById('payvibe-notice');
-        
-        console.log('Elements found:', {
-            amountInput: amountInput ? 'found' : 'not found',
-            paymentSection: paymentSection ? 'found' : 'not found',
-            gatewaySelect: gatewaySelect ? 'found' : 'not found',
-            payvibeNotice: payvibeNotice ? 'found' : 'not found'
-        });
+    $(document).ready(function() {
+        console.log('Simple PayVibe filter loaded');
 
-        function togglePaymentSection() {
-            const amount = parseInt(amountInput.value) || 0;
-            console.log('Amount entered:', amount);
-            
-            if (amount && amount >= 2000) {
-                paymentSection.style.display = 'block';
-                paymentSection.style.opacity = '1';
-                console.log('Showing payment section');
-                
-                // Handle PayVibe filtering
-                togglePayVibe();
-            } else {
-                paymentSection.style.display = 'none';
-                paymentSection.style.opacity = '0';
-                console.log('Hiding payment section');
-            }
-        }
-        
         function togglePayVibe() {
-            const amount = parseInt(amountInput.value) || 0;
-            const payvibeOption = gatewaySelect.querySelector('option[value="120"]');
-            
-            console.log('Amount for PayVibe check:', amount);
-            
+            var amount = parseInt($('input[name="amount"]').val()) || 0;
+            var payvibeOption = $('#gateway option[value="120"]');
+            var payvibeNotice = $('#payvibe-notice');
+
+            console.log('Amount:', amount);
+
             if (amount > 10000) {
-                console.log('Amount > 10000, removing PayVibe');
-                if (payvibeOption) {
-                    payvibeOption.remove();
-                }
-                payvibeNotice.style.display = 'block';
-                
-                // If PayVibe was selected, clear selection
-                if (gatewaySelect.value == '120') {
-                    gatewaySelect.value = '';
-                    console.log('PayVibe was selected, clearing selection');
-                }
+                payvibeOption.hide();
+                payvibeNotice.show();
+                console.log('Hidden PayVibe');
             } else {
-                console.log('Amount <= 10000, adding PayVibe');
-                // Only add if it doesn't already exist
-                if (!gatewaySelect.querySelector('option[value="120"]')) {
-                    const newOption = document.createElement('option');
-                    newOption.value = '120';
-                    newOption.textContent = 'PayVibe';
-                    gatewaySelect.appendChild(newOption);
-                }
-                payvibeNotice.style.display = 'none';
+                payvibeOption.show();
+                payvibeNotice.hide();
+                console.log('Shown PayVibe');
             }
         }
 
         // Set payment method based on selected gateway
-        if (gatewaySelect) {
-            gatewaySelect.addEventListener('change', function() {
-                console.log('Gateway changed to:', this.value);
-                const methodCode = this.value;
-                let paymentMethod = '';
-                
-                if (methodCode == '118') {
-                    paymentMethod = 'xtrapay';
-                } else if (methodCode == '120') {
-                    paymentMethod = 'payvibe';
-                } else if (methodCode == '1000') {
-                    paymentMethod = 'manual';
-                }
-                
-                document.getElementById('payment_method').value = paymentMethod;
-                const selectedOption = this.options[this.selectedIndex];
-                document.querySelector('input[name=currency]').value = selectedOption.dataset.currency;
-            });
-        }
+        $('#gateway').on('change', function() {
+            console.log('Gateway changed to:', $(this).val());
+            var methodCode = $(this).val();
+            var paymentMethod = '';
+            
+            if (methodCode == '118') {
+                paymentMethod = 'xtrapay';
+            } else if (methodCode == '120') {
+                paymentMethod = 'payvibe';
+            } else if (methodCode == '1000') {
+                paymentMethod = 'manual';
+            }
+            
+            $('#payment_method').val(paymentMethod);
+            var selectedOption = $(this).find('option:selected');
+            $('input[name=currency]').val(selectedOption.data('currency'));
+        });
 
         // Monitor amount input
-        if (amountInput) {
-            amountInput.addEventListener('input', togglePaymentSection);
-        }
-
-        // Form validation
-        const form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const amount = parseInt(amountInput.value) || 0;
-                const selectedGateway = gatewaySelect.value;
-                
-                if (amount < 2000) {
-                    alert('Minimum amount is ₦2,000');
-                    e.preventDefault();
-                    return false;
-                }
-                
-                if (amount > 500000) {
-                    alert('Maximum amount is ₦500,000');
-                    e.preventDefault();
-                    return false;
-                }
-                
-                if (!selectedGateway) {
-                    alert('Please select a payment method');
-                    e.preventDefault();
-                    return false;
-                }
-                
-                console.log('Form validation passed');
-            });
-        }
+        $('input[name="amount"]').on('input', function() {
+            console.log('Amount changed:', $(this).val());
+            togglePayVibe();
+        });
 
         // Initial run
-        console.log('=== INITIAL RUN ===');
-        togglePaymentSection();
+        togglePayVibe();
     });
 </script>
 @endpush
