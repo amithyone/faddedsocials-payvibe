@@ -60,6 +60,13 @@
                                         </select>
                                     </div>
                                 </div>
+                                <div class="alert alert-info mt-2" id="payment-info">
+                                    <small>
+                                        <strong>Payment Method Guidelines:</strong><br>
+                                        • <strong>PayVibe:</strong> Available for amounts below ₦10,000<br>
+                                        • <strong>Xtrapay & Manual Payment:</strong> Available for amounts ₦10,000 and above
+                                    </small>
+                                </div>
                             </div>
                         </div>
 
@@ -201,6 +208,81 @@
     (function ($) {
         "use strict";
         
+        // Store all gateway options for filtering
+        var allGatewayOptions = [];
+        $('#gateway option').each(function() {
+            allGatewayOptions.push({
+                value: $(this).val(),
+                text: $(this).text(),
+                currency: $(this).data('currency'),
+                methodCode: $(this).val()
+            });
+        });
+        
+        // Function to filter gateways based on amount
+        function filterGateways(amount) {
+            var filteredOptions = [];
+            
+            allGatewayOptions.forEach(function(option) {
+                var methodCode = parseInt(option.methodCode);
+                var showOption = true;
+                
+                // PayVibe (method_code 120) - only show for amounts below 10,000
+                if (methodCode == 120) {
+                    showOption = amount < 10000;
+                }
+                // Xtrapay (method_code 118) - show for amounts 10,000 and above
+                else if (methodCode == 118) {
+                    showOption = amount >= 10000;
+                }
+                // Manual payments (method_code >= 1000) - show for amounts 10,000 and above
+                else if (methodCode >= 1000) {
+                    showOption = amount >= 10000;
+                }
+                // Other gateways - show for all amounts
+                else {
+                    showOption = true;
+                }
+                
+                if (showOption) {
+                    filteredOptions.push(option);
+                }
+            });
+            
+            return filteredOptions;
+        }
+        
+        // Function to update gateway dropdown
+        function updateGatewayDropdown(amount) {
+            var filteredOptions = filterGateways(amount);
+            var $gatewaySelect = $('#gateway');
+            
+            // Clear current options
+            $gatewaySelect.empty();
+            
+            // Add filtered options
+            filteredOptions.forEach(function(option) {
+                $gatewaySelect.append(
+                    $('<option></option>')
+                        .val(option.value)
+                        .text(option.text)
+                        .data('currency', option.currency)
+                );
+            });
+            
+            // Trigger change event to update payment method
+            $gatewaySelect.trigger('change');
+            
+            // Show message if no options available
+            if (filteredOptions.length === 0) {
+                $gatewaySelect.append(
+                    $('<option></option>')
+                        .val('')
+                        .text('No payment methods available for this amount')
+                );
+            }
+        }
+        
         // Set payment method based on selected gateway
         $('#gateway').on('change', function() {
             var methodCode = $(this).val();
@@ -220,12 +302,34 @@
             $('input[name=currency]').val($(this).find(':selected').data('currency'));
         });
 
+        // Update gateways when amount changes
+        $('input[name="amount"]').on('input', function() {
+            var amount = parseInt($(this).val()) || 0;
+            updateGatewayDropdown(amount);
+            
+            // Update payment info message
+            var $paymentInfo = $('#payment-info');
+            if (amount > 0) {
+                if (amount < 10000) {
+                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>PayVibe:</strong> Available for amounts below ₦10,000<br>• <strong>Xtrapay & Manual Payment:</strong> Available for amounts ₦10,000 and above</small>');
+                } else {
+                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>Xtrapay & Manual Payment:</strong> Available for amounts ₦10,000 and above<br>• <strong>PayVibe:</strong> Available for amounts below ₦10,000</small>');
+                }
+            }
+        });
+
         // Trigger change event on page load to set initial payment method
         $('#gateway').trigger('change');
 
         // Show maintenance modal on page load
         $(document).ready(function() {
             $('#maintenanceModal').modal('show');
+            
+            // Initialize with current amount if available
+            var currentAmount = parseInt($('input[name="amount"]').val()) || 0;
+            if (currentAmount > 0) {
+                updateGatewayDropdown(currentAmount);
+            }
         });
     })(jQuery);
 </script>

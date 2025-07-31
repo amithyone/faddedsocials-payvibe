@@ -274,9 +274,36 @@ class UserController extends Controller
     public function depositNew(Request $request)
     {
         $pageTitle = 'Fund Wallet';
-        $gateway_currency = GatewayCurrency::where('status', 1)->get();
+        
+        // Get the amount from request (if provided)
+        $amount = $request->amount ?? 0;
+        
+        // Load all gateway currencies
+        $allGateways = GatewayCurrency::where('status', 1)->get();
+        
+        // Filter gateways based on amount
+        $gateway_currency = $allGateways->filter(function($gateway) use ($amount) {
+            // PayVibe (method_code 120) - only show for amounts below 10,000
+            if ($gateway->method_code == 120) {
+                return $amount < 10000;
+            }
+            
+            // Xtrapay (method_code 118) - show for amounts 10,000 and above
+            if ($gateway->method_code == 118) {
+                return $amount >= 10000;
+            }
+            
+            // Manual payments (method_code >= 1000) - show for amounts 10,000 and above
+            if ($gateway->method_code >= 1000) {
+                return $amount >= 10000;
+            }
+            
+            // Other gateways - show for all amounts
+            return true;
+        });
+        
         $deposits = Deposit::latest()->where('user_id', Auth::id())->with('gateway', 'order')->paginate('5');
-        return view($this->activeTemplate . 'user.deposit_new', compact('pageTitle', 'gateway_currency', 'deposits'));
+        return view($this->activeTemplate . 'user.deposit_new', compact('pageTitle', 'gateway_currency', 'deposits', 'amount'));
     }
 
     public function attachmentDownload($fileHash)
