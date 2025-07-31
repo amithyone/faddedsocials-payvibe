@@ -51,14 +51,15 @@
                         <div class="p-3">
                             <div class="card-body">
                                 <h6 class="mb-2">Select Payment Gateway</h6>
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="col-12">
-                                        <select class="form-control select select-has-icon" name="gateway" id="gateway" required>
-                                            @foreach ($gateway_currency as $data)
-                                                <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">{{ $data->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                                <div class="payment-gateways">
+                                    @foreach ($gateway_currency as $data)
+                                        <div class="form-check mb-2 gateway-option" data-method-code="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
+                                            <input class="form-check-input" type="radio" name="gateway" id="gateway_{{ $data->method_code }}" value="{{ $data->method_code }}" required>
+                                            <label class="form-check-label" for="gateway_{{ $data->method_code }}">
+                                                {{ $data->name }}
+                                            </label>
+                                        </div>
+                                    @endforeach
                                 </div>
                                 <div id="payvibe-notice" class="alert alert-info" style="display: none;">
                                     <small><i class="fas fa-info-circle"></i> PayVibe is not available for amounts over ₦10,000. Please select another payment method.</small>
@@ -208,52 +209,44 @@
         
         console.log('jQuery available:', typeof $ !== 'undefined');
         
-        // Store the original PayVibe option HTML
-        var originalPayVibeHTML = '';
-        
         // Function to filter PayVibe option based on amount
         function filterPayVibeOption() {
             console.log('filterPayVibeOption called');
             var amount = parseInt($('input[name="amount"]').val()) || 0;
-            var payvibeOption = $('#gateway option[value="120"]');
+            var payvibeOption = $('.gateway-option[data-method-code="120"]');
+            var payvibeRadio = $('#gateway_120');
             var payvibeNotice = $('#payvibe-notice');
             
             console.log('Amount:', amount, 'PayVibe option found:', payvibeOption.length);
-            console.log('Gateway dropdown found:', $('#gateway').length);
-            
-            // Store original PayVibe HTML if not already stored
-            if (originalPayVibeHTML === '' && payvibeOption.length > 0) {
-                originalPayVibeHTML = payvibeOption.prop('outerHTML');
-                console.log('Stored original PayVibe HTML');
-            }
+            console.log('Payment gateways found:', $('.gateway-option').length);
             
             if (amount > 10000) {
-                // Remove PayVibe option if amount > 10,000
-                payvibeOption.remove();
+                // Hide PayVibe option if amount > 10,000
+                payvibeOption.hide();
+                payvibeRadio.prop('disabled', true);
                 payvibeNotice.show();
-                console.log('Removed PayVibe - amount > 10000');
+                console.log('Hidden PayVibe - amount > 10000');
                 
-                // If PayVibe was selected, change to first available option
-                if ($('#gateway').val() == '120') {
-                    var firstAvailableOption = $('#gateway option:first');
-                    if (firstAvailableOption.length > 0) {
-                        firstAvailableOption.prop('selected', true);
-                        $('#gateway').trigger('change');
+                // If PayVibe is currently selected, change to first available option
+                if (payvibeRadio.is(':checked')) {
+                    var firstAvailableRadio = $('.gateway-option:visible input[type="radio"]:first');
+                    if (firstAvailableRadio.length > 0) {
+                        firstAvailableRadio.prop('checked', true);
+                        firstAvailableRadio.trigger('change');
                         console.log('Switched from PayVibe to first available option');
                     }
                 }
             } else {
-                // Add PayVibe option back if amount <= 10,000 and it's not already there
-                if ($('#gateway option[value="120"]').length === 0 && originalPayVibeHTML !== '') {
-                    $('#gateway').append(originalPayVibeHTML);
-                    console.log('Added PayVibe back - amount <= 10000');
-                }
+                // Show PayVibe option if amount <= 10,000
+                payvibeOption.show();
+                payvibeRadio.prop('disabled', false);
                 payvibeNotice.hide();
+                console.log('Shown PayVibe - amount <= 10000');
             }
         }
         
         // Set payment method based on selected gateway
-        $('#gateway').on('change', function() {
+        $('input[name="gateway"]').on('change', function() {
             console.log('Gateway changed to:', $(this).val());
             var methodCode = $(this).val();
             var paymentMethod = '';
@@ -269,7 +262,8 @@
             }
             
             $('#payment_method').val(paymentMethod);
-            $('input[name=currency]').val($(this).find(':selected').data('currency'));
+            var selectedOption = $('.gateway-option[data-method-code="' + methodCode + '"]');
+            $('input[name=currency]').val(selectedOption.data('currency'));
         });
 
         // Monitor amount input for changes
@@ -284,19 +278,19 @@
             
             // Test if basic elements exist
             console.log('Amount input exists:', $('input[name="amount"]').length);
-            console.log('Gateway dropdown exists:', $('#gateway').length);
+            console.log('Gateway options exist:', $('.gateway-option').length);
             console.log('PayVibe notice exists:', $('#payvibe-notice').length);
             
             // List all gateway options
-            $('#gateway option').each(function() {
-                console.log('Gateway option:', $(this).val(), $(this).text());
+            $('.gateway-option').each(function() {
+                console.log('Gateway option:', $(this).data('method-code'), $(this).find('label').text());
             });
             
             // Initial filter on page load
             filterPayVibeOption();
             
             // Trigger change event on page load to set initial payment method
-            $('#gateway').trigger('change');
+            $('input[name="gateway"]:first').trigger('change');
             
             // Show maintenance modal on page load
             $('#maintenanceModal').modal('show');
