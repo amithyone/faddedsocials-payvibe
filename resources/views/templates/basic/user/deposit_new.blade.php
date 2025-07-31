@@ -203,32 +203,45 @@
 
 <script>
     $(document).ready(function() {
-        console.log('PayVibe filter script loaded');
+        console.log('=== PAYVIBE FILTER DEBUG ===');
+        console.log('jQuery loaded:', typeof $ !== 'undefined');
+        
+        // Check if elements exist
+        var amountInput = $('input[name="amount"]');
+        var gatewaySelect = $('#gateway');
+        var payvibeOption = $('#gateway option[value="120"]');
+        var payvibeNotice = $('#payvibe-notice');
+        
+        console.log('Amount input found:', amountInput.length);
+        console.log('Gateway select found:', gatewaySelect.length);
+        console.log('PayVibe option found:', payvibeOption.length);
+        console.log('PayVibe notice found:', payvibeNotice.length);
+        
+        // List all gateway options
+        $('#gateway option').each(function() {
+            console.log('Gateway option:', $(this).val(), $(this).text());
+        });
 
         function togglePayVibe() {
+            console.log('=== togglePayVibe called ===');
             var amount = parseInt($('input[name="amount"]').val()) || 0;
-            var payvibeOption = $('#gateway option[value="120"]');
-            var payvibeNotice = $('#payvibe-notice');
-
-            console.log('Entered Amount:', amount);
+            console.log('Amount value:', amount);
+            console.log('Amount input value:', $('input[name="amount"]').val());
 
             if (amount > 10000) {
-                // Hide PayVibe
+                console.log('Amount > 10000, hiding PayVibe');
                 payvibeOption.hide();
                 payvibeNotice.show();
-
+                
                 // If PayVibe is selected, change to first available option
                 if ($('#gateway').val() == '120') {
                     $('#gateway').val('');
                     console.log('PayVibe was selected, clearing selection');
                 }
-
-                console.log('PayVibe hidden for amount > ₦10,000');
             } else {
-                // Show PayVibe
+                console.log('Amount <= 10000, showing PayVibe');
                 payvibeOption.show();
                 payvibeNotice.hide();
-                console.log('PayVibe shown for amount ≤ ₦10,000');
             }
         }
 
@@ -253,11 +266,37 @@
             $('input[name=currency]').val(selectedOption.data('currency'));
         });
 
-        // Run when user types
-        $('input[name="amount"]').on('input', togglePayVibe);
+        // Test multiple event listeners
+        $('input[name="amount"]').on('input', function() {
+            console.log('=== AMOUNT INPUT EVENT ===');
+            console.log('Input event triggered');
+            console.log('Input value:', $(this).val());
+            togglePayVibe();
+        });
+        
+        $('input[name="amount"]').on('keyup', function() {
+            console.log('=== AMOUNT KEYUP EVENT ===');
+            console.log('Keyup event triggered');
+            console.log('Input value:', $(this).val());
+            togglePayVibe();
+        });
+        
+        $('input[name="amount"]').on('change', function() {
+            console.log('=== AMOUNT CHANGE EVENT ===');
+            console.log('Change event triggered');
+            console.log('Input value:', $(this).val());
+            togglePayVibe();
+        });
 
-        // Run once on page load (if value already exists)
+        // Run once on page load
+        console.log('=== INITIAL RUN ===');
         togglePayVibe();
+        
+        // Test with setTimeout
+        setTimeout(function() {
+            console.log('=== TIMEOUT TEST ===');
+            togglePayVibe();
+        }, 1000);
     });
 </script>
 @endpush
