@@ -132,10 +132,20 @@
 
 
                                 <div class="col-12">
+                                    @php
+                                        $productCount = 0;
+                                        $adPositions = [3, 4, 5]; // Random positions for ads
+                                        $currentAdPosition = $adPositions[array_rand($adPositions)];
+                                    @endphp
                                     @foreach ($products->take(5) as $product)
                                         @include($activeTemplate . 'partials/products')
+                                        @php $productCount++; @endphp
+                                        
+                                        {{-- Show ad after random position (3, 4, or 5 products) --}}
+                                        @if($productCount == $currentAdPosition)
+                                            @include($activeTemplate . 'partials/ads')
+                                        @endif
                                     @endforeach
-
                                 </div>
 
 
