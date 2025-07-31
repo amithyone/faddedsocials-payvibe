@@ -42,16 +42,17 @@
 
                         <div class="p-3">
                             <div class="card-body">
-                                <h6>Enter Amount (NGN)</h6>
-                                <input type="number" name="amount" class="form-control" required min="2000" max="500000">
+                                <label for="amount-input" class="form-label">Enter Amount (NGN)</label>
+                                <input type="number" name="amount" id="amount-input" class="form-control" required min="2000" max="500000" aria-describedby="amount-help">
+                                <div id="amount-help" class="form-text">Minimum: ₦2,000 | Maximum: ₦500,000</div>
                                 <input type="text" id="payment_method" name="payment" hidden>
                             </div>
                         </div>
 
                         <div class="p-3">
                             <div class="card-body">
-                                <h6 class="mb-2">Select Payment Gateway</h6>
-                                <select name="gateway" id="gateway" class="form-control" required>
+                                <label for="gateway" class="form-label">Select Payment Gateway</label>
+                                <select name="gateway" id="gateway" class="form-control" required aria-describedby="gateway-help">
                                     <option value="">Select Payment Method</option>
                                     @foreach ($gateway_currency as $data)
                                         @if($data->method_code == 118 || $data->method_code == 120 || $data->method_code == 1000)
@@ -61,8 +62,9 @@
                                         @endif
                                     @endforeach
                                 </select>
-                                <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;">
-                                    <small><i class="fas fa-info-circle"></i> PayVibe is not available for amounts over ₦10,000. Please select another payment method.</small>
+                                <div id="gateway-help" class="form-text">Choose your preferred payment method</div>
+                                <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;" role="alert" aria-live="polite">
+                                    <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is not available for amounts over ₦10,000. Please select another payment method.</small>
                                 </div>
                             </div>
                         </div>
