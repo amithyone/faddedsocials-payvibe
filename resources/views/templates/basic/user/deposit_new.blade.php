@@ -208,21 +208,11 @@
         console.log('=== SIMPLIFIED PAYVIBE FILTER ===');
         console.log('jQuery loaded:', typeof $ !== 'undefined');
         
-        // Check if elements exist
-        var amountInput = $('input[name="amount"]');
-        var gatewaySelect = $('#gateway');
-        var payvibeOption = $('#gateway option[value="120"]');
+        // Store the original PayVibe option
+        var originalPayVibeOption = $('#gateway option[value="120"]').clone();
         var payvibeNotice = $('#payvibe-notice');
         
-        console.log('Amount input found:', amountInput.length);
-        console.log('Gateway select found:', gatewaySelect.length);
-        console.log('PayVibe option found:', payvibeOption.length);
-        console.log('PayVibe notice found:', payvibeNotice.length);
-        
-        // List all gateway options
-        $('#gateway option').each(function() {
-            console.log('Gateway option:', $(this).val(), $(this).text());
-        });
+        console.log('Original PayVibe option found:', originalPayVibeOption.length);
 
         function togglePayVibe() {
             console.log('=== togglePayVibe called ===');
@@ -230,18 +220,21 @@
             console.log('Amount value:', amount);
 
             if (amount > 10000) {
-                console.log('Amount > 10000, hiding PayVibe');
-                payvibeOption.hide();
+                console.log('Amount > 10000, removing PayVibe');
+                $('#gateway option[value="120"]').remove();
                 payvibeNotice.show();
                 
-                // If PayVibe is selected, change to first available option
+                // If PayVibe was selected, clear selection
                 if ($('#gateway').val() == '120') {
                     $('#gateway').val('');
                     console.log('PayVibe was selected, clearing selection');
                 }
             } else {
-                console.log('Amount <= 10000, showing PayVibe');
-                payvibeOption.show();
+                console.log('Amount <= 10000, adding PayVibe');
+                // Only add if it doesn't already exist
+                if ($('#gateway option[value="120"]').length === 0) {
+                    $('#gateway').append(originalPayVibeOption);
+                }
                 payvibeNotice.hide();
             }
         }
