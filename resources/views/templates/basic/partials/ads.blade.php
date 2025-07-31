@@ -1,12 +1,5 @@
-@php
-    // Alternate between SMM and SMS ads
-    static $adCounter = 0;
-    $adCounter++;
-    $isSmmAd = ($adCounter % 2 == 1); // Odd numbers show SMM, even show SMS
-@endphp
-
-@if($isSmmAd)
-    {{-- SMM Ad for faddedsmm.com --}}
+@if(isset($showSmmAd) && $showSmmAd)
+    {{-- SMM Ad for faddedsmm.com (after first category) --}}
     <div class="col-lg-12 col-md-12">
         <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
             <div class="card-body text-center p-4">
@@ -44,7 +37,7 @@
         </div>
     </div>
 @else
-    {{-- SMS Ad for faddedsms.com --}}
+    {{-- SMS Ad for faddedsms.com (after second category) --}}
     <div class="col-lg-12 col-md-12">
         <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
             <div class="card-body text-center p-4">

@@ -128,9 +128,6 @@
 
                                 </div>
 
-
-
-
                                 <div class="col-12">
                                     @foreach ($products->take(5) as $product)
                                         @include($activeTemplate . 'partials/products')
@@ -151,8 +148,14 @@
                                     </a>
                                 </div>
 
-                                {{-- Show ad under "View All" button --}}
-                                @include($activeTemplate . 'partials/ads')
+                                {{-- Show SMM ad after first category, SMS ad after second category --}}
+                                @if($loop->first)
+                                    @php $showSmmAd = true; @endphp
+                                    @include($activeTemplate . 'partials/ads')
+                                @elseif($loop->index == 1)
+                                    @php $showSmmAd = false; @endphp
+                                    @include($activeTemplate . 'partials/ads')
+                                @endif
 
                             @empty
                                 <div class="empty-data text-center">
