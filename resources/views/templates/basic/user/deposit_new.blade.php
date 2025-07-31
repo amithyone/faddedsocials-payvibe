@@ -62,7 +62,7 @@
                                         @endif
                                     @endforeach
                                 </select>
-                                <div id="gateway-help" class="form-text">PayVibe is unavailable for amounts over ₦10,000. Please select another payment method</div>
+                                <div id="gateway-help" class="form-text">Choose payment method</div>
                                 <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;" role="alert" aria-live="polite">
                                     <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is disabled for amounts over ₦10,000. Please select another payment method.</small>
                                 </div>
