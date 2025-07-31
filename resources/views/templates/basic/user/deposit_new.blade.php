@@ -55,7 +55,21 @@
                                 <select name="gateway" id="gateway" class="form-control" required aria-describedby="gateway-help">
                                     <option value="">Select Payment Method</option>
                                     @foreach ($gateway_currency as $data)
-                                        @if($data->method_code == 118 || $data->method_code == 120 || $data->method_code == 1000)
+                                        @if($data->method_code == 120)
+                                            <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
+                                                {{ $data->name }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                    @foreach ($gateway_currency as $data)
+                                        @if($data->method_code == 118)
+                                            <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
+                                                {{ $data->name }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                    @foreach ($gateway_currency as $data)
+                                        @if($data->method_code == 1000)
                                             <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
                                                 {{ $data->name }}
                                             </option>
