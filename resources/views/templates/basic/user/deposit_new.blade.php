@@ -202,149 +202,69 @@
 
 @push('script')
 <script>
-    // Immediate execution to avoid conflicts with other scripts
+    console.log('Simple PayVibe filter script loaded');
+    
     (function() {
-        console.log('PayVibe filter script loaded - IMMEDIATE EXECUTION');
+        console.log('Initializing simple PayVibe filter');
         
         // Wait for DOM to be ready
-        function initPayVibeFilter() {
-            console.log('=== INITIALIZING PAYVIBE FILTER ===');
+        function initSimpleFilter() {
+            console.log('DOM ready, initializing simple filter');
             
             // Check if jQuery is available
             if (typeof $ === 'undefined') {
                 console.log('jQuery not available, trying again in 500ms');
-                setTimeout(initPayVibeFilter, 500);
+                setTimeout(initSimpleFilter, 500);
                 return;
             }
             
             console.log('jQuery available:', typeof $ !== 'undefined');
             
-            // Function to filter PayVibe option based on amount
-            function filterPayVibeOption() {
-                console.log('=== filterPayVibeOption called ===');
-                var amount = parseInt($('input[name="amount"]').val()) || 0;
-                var payvibeOption = $('.gateway-option[data-method-code="120"]');
-                var payvibeRadio = $('#gateway_120');
-                var payvibeNotice = $('#payvibe-notice');
-                
+            var amountInput = $('input[name="amount"]');
+            var payvibeOption = $('.gateway-option[data-method-code="120"]');
+            var payvibeNotice = $('#payvibe-notice');
+            
+            console.log('Elements found:', {
+                amountInput: amountInput.length,
+                payvibeOption: payvibeOption.length,
+                payvibeNotice: payvibeNotice.length
+            });
+            
+            // Function to filter PayVibe
+            function filterPayVibe() {
+                var amount = parseInt(amountInput.val()) || 0;
                 console.log('Amount:', amount);
-                console.log('PayVibe option found:', payvibeOption.length);
-                console.log('PayVibe radio found:', payvibeRadio.length);
-                console.log('PayVibe notice found:', payvibeNotice.length);
-                console.log('All gateway options:', $('.gateway-option').length);
-                
-                // List all gateway options for debugging
-                $('.gateway-option').each(function() {
-                    var methodCode = $(this).data('method-code');
-                    var label = $(this).find('label').text().trim();
-                    var isVisible = $(this).is(':visible');
-                    console.log('Gateway:', methodCode, 'Label:', label, 'Visible:', isVisible);
-                });
                 
                 if (amount > 10000) {
-                    console.log('=== HIDING PAYVIBE - Amount > 10000 ===');
-                    
-                    // Multiple approaches to hide PayVibe
-                    payvibeOption.hide();
-                    payvibeOption.css('display', 'none');
+                    console.log('Hiding PayVibe - amount > 10000');
                     payvibeOption.addClass('d-none');
-                    payvibeRadio.prop('disabled', true);
-                    payvibeRadio.prop('checked', false);
                     payvibeNotice.show();
-                    
-                    console.log('PayVibe hidden with multiple methods');
-                    console.log('PayVibe option visible after hide:', payvibeOption.is(':visible'));
-                    
-                    // If PayVibe is currently selected, change to first available option
-                    if (payvibeRadio.is(':checked')) {
-                        console.log('PayVibe was selected, switching to first available');
-                        var firstAvailableRadio = $('.gateway-option:visible input[type="radio"]:first');
-                        console.log('First available radio found:', firstAvailableRadio.length);
-                        if (firstAvailableRadio.length > 0) {
-                            firstAvailableRadio.prop('checked', true);
-                            firstAvailableRadio.trigger('change');
-                            console.log('Switched from PayVibe to first available option');
-                        }
-                    }
-                    
-                    // Force check again after hiding
-                    setTimeout(function() {
-                        console.log('=== DOUBLE CHECK ===');
-                        console.log('PayVibe option still visible:', payvibeOption.is(':visible'));
-                        console.log('PayVibe radio checked:', payvibeRadio.is(':checked'));
-                        console.log('PayVibe radio disabled:', payvibeRadio.prop('disabled'));
-                    }, 100);
-                    
                 } else {
-                    console.log('=== SHOWING PAYVIBE - Amount <= 10000 ===');
-                    
-                    // Show PayVibe option if amount <= 10,000
-                    payvibeOption.show();
-                    payvibeOption.css('display', 'block');
+                    console.log('Showing PayVibe - amount <= 10000');
                     payvibeOption.removeClass('d-none');
-                    payvibeRadio.prop('disabled', false);
                     payvibeNotice.hide();
-                    console.log('Shown PayVibe - amount <= 10000');
                 }
             }
             
-            // Set payment method based on selected gateway
-            $('input[name="gateway"]').on('change', function() {
-                console.log('Gateway changed to:', $(this).val());
-                var methodCode = $(this).val();
-                var paymentMethod = '';
-                
-                if (methodCode == '118') {
-                    paymentMethod = 'xtrapay';
-                } else if (methodCode == '107') {
-                    paymentMethod = 'paystack';
-                } else if (methodCode == '120') {
-                    paymentMethod = 'payvibe';
-                } else {
-                    paymentMethod = 'enkpay';
-                }
-                
-                $('#payment_method').val(paymentMethod);
-                var selectedOption = $('.gateway-option[data-method-code="' + methodCode + '"]');
-                $('input[name=currency]').val(selectedOption.data('currency'));
-            });
-
-            // Monitor amount input for changes
-            $('input[name="amount"]').on('input', function() {
-                console.log('Amount input changed:', $(this).val());
-                filterPayVibeOption();
-            });
-
-            // Test if basic elements exist
-            console.log('Amount input exists:', $('input[name="amount"]').length);
-            console.log('Gateway options exist:', $('.gateway-option').length);
-            console.log('PayVibe notice exists:', $('#payvibe-notice').length);
-            
-            // List all gateway options
-            $('.gateway-option').each(function() {
-                console.log('Gateway option:', $(this).data('method-code'), $(this).find('label').text());
+            // Monitor amount input
+            amountInput.on('input', function() {
+                console.log('Amount changed:', $(this).val());
+                filterPayVibe();
             });
             
-            // Initial filter on page load
-            filterPayVibeOption();
-            
-            // Trigger change event on page load to set initial payment method
-            $('input[name="gateway"]:first').trigger('change');
-            
-            // Show maintenance modal on page load
-            $('#maintenanceModal').modal('show');
+            // Initial filter
+            filterPayVibe();
         }
         
-        // Try to initialize immediately
+        // Initialize
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPayVibeFilter);
+            document.addEventListener('DOMContentLoaded', initSimpleFilter);
         } else {
-            initPayVibeFilter();
+            initSimpleFilter();
         }
         
-        // Also try with jQuery ready as backup
         if (typeof $ !== 'undefined') {
-            $(document).ready(initPayVibeFilter);
+            $(document).ready(initSimpleFilter);
         }
         
     })();
