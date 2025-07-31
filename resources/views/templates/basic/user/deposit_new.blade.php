@@ -54,9 +54,11 @@
                                 <select name="gateway" id="gateway" class="form-control" required>
                                     <option value="">Select Payment Method</option>
                                     @foreach ($gateway_currency as $data)
-                                        <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
-                                            {{ $data->name }}
-                                        </option>
+                                        @if($data->method_code == 118 || $data->method_code == 120 || $data->method_code == 1000)
+                                            <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
+                                                {{ $data->name }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                                 <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;">
@@ -203,7 +205,7 @@
 
 <script>
     $(document).ready(function() {
-        console.log('=== PAYVIBE FILTER DEBUG ===');
+        console.log('=== SIMPLIFIED PAYVIBE FILTER ===');
         console.log('jQuery loaded:', typeof $ !== 'undefined');
         
         // Check if elements exist
@@ -226,7 +228,6 @@
             console.log('=== togglePayVibe called ===');
             var amount = parseInt($('input[name="amount"]').val()) || 0;
             console.log('Amount value:', amount);
-            console.log('Amount input value:', $('input[name="amount"]').val());
 
             if (amount > 10000) {
                 console.log('Amount > 10000, hiding PayVibe');
@@ -245,7 +246,7 @@
             }
         }
 
-        // Set payment method based on selected gateway
+        // Set payment method based on selected gateway (simplified)
         $('#gateway').on('change', function() {
             console.log('Gateway changed to:', $(this).val());
             var methodCode = $(this).val();
@@ -253,12 +254,10 @@
             
             if (methodCode == '118') {
                 paymentMethod = 'xtrapay';
-            } else if (methodCode == '107') {
-                paymentMethod = 'paystack';
             } else if (methodCode == '120') {
                 paymentMethod = 'payvibe';
-            } else {
-                paymentMethod = 'enkpay';
+            } else if (methodCode == '1000') {
+                paymentMethod = 'manual';
             }
             
             $('#payment_method').val(paymentMethod);
@@ -266,37 +265,15 @@
             $('input[name=currency]').val(selectedOption.data('currency'));
         });
 
-        // Test multiple event listeners
+        // Simple event listener
         $('input[name="amount"]').on('input', function() {
-            console.log('=== AMOUNT INPUT EVENT ===');
-            console.log('Input event triggered');
-            console.log('Input value:', $(this).val());
-            togglePayVibe();
-        });
-        
-        $('input[name="amount"]').on('keyup', function() {
-            console.log('=== AMOUNT KEYUP EVENT ===');
-            console.log('Keyup event triggered');
-            console.log('Input value:', $(this).val());
-            togglePayVibe();
-        });
-        
-        $('input[name="amount"]').on('change', function() {
-            console.log('=== AMOUNT CHANGE EVENT ===');
-            console.log('Change event triggered');
-            console.log('Input value:', $(this).val());
+            console.log('Amount input changed:', $(this).val());
             togglePayVibe();
         });
 
         // Run once on page load
         console.log('=== INITIAL RUN ===');
         togglePayVibe();
-        
-        // Test with setTimeout
-        setTimeout(function() {
-            console.log('=== TIMEOUT TEST ===');
-            togglePayVibe();
-        }, 1000);
     });
 </script>
 @endpush
