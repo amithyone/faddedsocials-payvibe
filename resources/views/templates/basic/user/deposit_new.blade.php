@@ -60,12 +60,8 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="alert alert-info mt-2" id="payment-info">
-                                    <small>
-                                        <strong>Payment Method Guidelines:</strong><br>
-                                        • <strong>All payment methods:</strong> Available for amounts below ₦10,000<br>
-                                        • <strong>Instant Payment (Payaza):</strong> Available for amounts ₦10,000 and above
-                                    </small>
+                                <div id="payvibe-notice" class="alert alert-info" style="display: none;">
+                                    <small><i class="fas fa-info-circle"></i> PayVibe is not available for amounts over ₦10,000. Please select another payment method.</small>
                                 </div>
                             </div>
                         </div>
@@ -208,73 +204,26 @@
     (function ($) {
         "use strict";
         
-        // Store all gateway options for filtering
-        var allGatewayOptions = [];
-        $('#gateway option').each(function() {
-            allGatewayOptions.push({
-                value: $(this).val(),
-                text: $(this).text(),
-                currency: $(this).data('currency'),
-                methodCode: $(this).val()
-            });
-        });
-        
-        // Function to filter gateways based on amount
-        function filterGateways(amount) {
-            var filteredOptions = [];
+        // Function to filter PayVibe option based on amount
+        function filterPayVibeOption() {
+            var amount = parseInt($('input[name="amount"]').val()) || 0;
+            var payvibeOption = $('#gateway option[value="120"]');
+            var payvibeNotice = $('#payvibe-notice');
             
-            allGatewayOptions.forEach(function(option) {
-                var methodCode = parseInt(option.methodCode);
-                var showOption = true;
+            if (amount > 10000) {
+                // Hide PayVibe option if amount > 10,000
+                payvibeOption.hide();
+                payvibeNotice.show();
                 
-                // For amounts 10,000 and above, only show Payaza (119) as instant payment
-                if (amount >= 10000) {
-                    if (methodCode == 119) {
-                        showOption = true;
-                    } else {
-                        showOption = false;
-                    }
-                } else {
-                    // For amounts below 10,000, show all payment methods
-                    showOption = true;
+                // If PayVibe is currently selected, change to first available option
+                if ($('#gateway').val() == '120') {
+                    $('#gateway option:visible:first').prop('selected', true);
+                    $('#gateway').trigger('change');
                 }
-                
-                if (showOption) {
-                    filteredOptions.push(option);
-                }
-            });
-            
-            return filteredOptions;
-        }
-        
-        // Function to update gateway dropdown
-        function updateGatewayDropdown(amount) {
-            var filteredOptions = filterGateways(amount);
-            var $gatewaySelect = $('#gateway');
-            
-            // Clear current options
-            $gatewaySelect.empty();
-            
-            // Add filtered options
-            filteredOptions.forEach(function(option) {
-                $gatewaySelect.append(
-                    $('<option></option>')
-                        .val(option.value)
-                        .text(option.text)
-                        .data('currency', option.currency)
-                );
-            });
-            
-            // Trigger change event to update payment method
-            $gatewaySelect.trigger('change');
-            
-            // Show message if no options available
-            if (filteredOptions.length === 0) {
-                $gatewaySelect.append(
-                    $('<option></option>')
-                        .val('')
-                        .text('No payment methods available for this amount')
-                );
+            } else {
+                // Show PayVibe option if amount <= 10,000
+                payvibeOption.show();
+                payvibeNotice.hide();
             }
         }
         
@@ -297,34 +246,20 @@
             $('input[name=currency]').val($(this).find(':selected').data('currency'));
         });
 
-        // Update gateways when amount changes
+        // Monitor amount input for changes
         $('input[name="amount"]').on('input', function() {
-            var amount = parseInt($(this).val()) || 0;
-            updateGatewayDropdown(amount);
-            
-            // Update payment info message
-            var $paymentInfo = $('#payment-info');
-            if (amount > 0) {
-                if (amount < 10000) {
-                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>All payment methods:</strong> Available for amounts below ₦10,000<br>• <strong>Instant Payment (Payaza):</strong> Available for amounts ₦10,000 and above</small>');
-                } else {
-                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>Instant Payment (Payaza):</strong> Available for amounts ₦10,000 and above<br>• <strong>All payment methods:</strong> Available for amounts below ₦10,000</small>');
-                }
-            }
+            filterPayVibeOption();
         });
 
         // Trigger change event on page load to set initial payment method
         $('#gateway').trigger('change');
+        
+        // Initial filter on page load
+        filterPayVibeOption();
 
         // Show maintenance modal on page load
         $(document).ready(function() {
             $('#maintenanceModal').modal('show');
-            
-            // Initialize with current amount if available
-            var currentAmount = parseInt($('input[name="amount"]').val()) || 0;
-            if (currentAmount > 0) {
-                updateGatewayDropdown(currentAmount);
-            }
         });
     })(jQuery);
 </script>
