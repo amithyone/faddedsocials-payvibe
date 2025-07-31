@@ -43,24 +43,22 @@
                         <div class="p-3">
                             <div class="card-body">
                                 <h6>Enter Amount (NGN)</h6>
-                                <input type="number" name="amount" class="form-control" required min="2000" max="500000" placeholder="Enter amount to see payment options">
+                                <input type="number" name="amount" class="form-control" required min="2000" max="500000">
                                 <input type="text" id="payment_method" name="payment" hidden>
                             </div>
                         </div>
 
-                        <div class="p-3" id="payment-gateways-section" style="display: none;">
+                        <div class="p-3">
                             <div class="card-body">
                                 <h6 class="mb-2">Select Payment Gateway</h6>
-                                <div class="payment-gateways">
+                                <select name="gateway" id="gateway" class="form-control" required>
+                                    <option value="">Select Payment Method</option>
                                     @foreach ($gateway_currency as $data)
-                                        <div class="form-check mb-2 gateway-option" data-method-code="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
-                                            <input class="form-check-input" type="radio" name="gateway" id="gateway_{{ $data->method_code }}" value="{{ $data->method_code }}">
-                                            <label class="form-check-label" for="gateway_{{ $data->method_code }}">
-                                                {{ $data->name }}
-                                            </label>
-                                        </div>
+                                        <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
+                                            {{ $data->name }}
+                                        </option>
                                     @endforeach
-                                </div>
+                                </select>
                                 <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;">
                                     <small><i class="fas fa-info-circle"></i> PayVibe is not available for amounts over ₦10,000. Please select another payment method.</small>
                                 </div>
@@ -207,75 +205,59 @@
     $(document).ready(function() {
         console.log('PayVibe filter script loaded');
 
-        function togglePaymentGateways() {
+        function togglePayVibe() {
             var amount = parseInt($('input[name="amount"]').val()) || 0;
-            var payvibeOption = $('.gateway-option[data-method-code="120"]');
-            var payvibeInput = $('#gateway_120');
+            var payvibeOption = $('#gateway option[value="120"]');
             var payvibeNotice = $('#payvibe-notice');
-            var paymentGatewaysSection = $('#payment-gateways-section');
 
             console.log('Entered Amount:', amount);
 
-            if (amount < 2000) {
-                // Hide payment gateways if amount is too low
-                paymentGatewaysSection.hide();
-                console.log('Amount too low, hiding payment gateways');
-            } else {
-                // Show payment gateways
-                paymentGatewaysSection.show();
-                
-                if (amount > 10000) {
-                    // Hide PayVibe for high amounts
-                    payvibeOption.hide();
-                    payvibeNotice.show();
+            if (amount > 10000) {
+                // Hide PayVibe
+                payvibeOption.hide();
+                payvibeNotice.show();
 
-                    // Uncheck PayVibe if selected
-                    if (payvibeInput.is(':checked')) {
-                        payvibeInput.prop('checked', false);
-                        console.log('PayVibe was selected, unchecking now.');
-                    }
-
-                    console.log('PayVibe hidden for amount > ₦10,000');
-                } else {
-                    // Show PayVibe for low amounts
-                    payvibeOption.show();
-                    payvibeNotice.hide();
-                    console.log('PayVibe shown for amount ≤ ₦10,000');
+                // If PayVibe is selected, change to first available option
+                if ($('#gateway').val() == '120') {
+                    $('#gateway').val('');
+                    console.log('PayVibe was selected, clearing selection');
                 }
+
+                console.log('PayVibe hidden for amount > ₦10,000');
+            } else {
+                // Show PayVibe
+                payvibeOption.show();
+                payvibeNotice.hide();
+                console.log('PayVibe shown for amount ≤ ₦10,000');
             }
         }
 
-        // Form validation
-        $('form').on('submit', function(e) {
-            var amount = parseInt($('input[name="amount"]').val()) || 0;
-            var selectedGateway = $('input[name="gateway"]:checked').val();
+        // Set payment method based on selected gateway
+        $('#gateway').on('change', function() {
+            console.log('Gateway changed to:', $(this).val());
+            var methodCode = $(this).val();
+            var paymentMethod = '';
             
-            if (amount < 2000) {
-                alert('Minimum amount is ₦2,000');
-                e.preventDefault();
-                return false;
+            if (methodCode == '118') {
+                paymentMethod = 'xtrapay';
+            } else if (methodCode == '107') {
+                paymentMethod = 'paystack';
+            } else if (methodCode == '120') {
+                paymentMethod = 'payvibe';
+            } else {
+                paymentMethod = 'enkpay';
             }
             
-            if (amount > 500000) {
-                alert('Maximum amount is ₦500,000');
-                e.preventDefault();
-                return false;
-            }
-            
-            if (!selectedGateway) {
-                alert('Please select a payment method');
-                e.preventDefault();
-                return false;
-            }
-            
-            console.log('Form validation passed');
+            $('#payment_method').val(paymentMethod);
+            var selectedOption = $(this).find('option:selected');
+            $('input[name=currency]').val(selectedOption.data('currency'));
         });
 
         // Run when user types
-        $('input[name="amount"]').on('input', togglePaymentGateways);
+        $('input[name="amount"]').on('input', togglePayVibe);
 
         // Run once on page load (if value already exists)
-        togglePaymentGateways();
+        togglePayVibe();
     });
 </script>
 @endpush
