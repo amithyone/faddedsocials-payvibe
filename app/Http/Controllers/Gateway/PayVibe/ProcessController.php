@@ -223,7 +223,8 @@ class ProcessController extends Controller
                             // Extract transaction details
                     $reference = $data['reference'] ?? $data['ref'] ?? $data['transaction_id'] ?? null;
                     $productIdentifier = $data['product_identifier'] ?? null;
-                    $amountReceived = $data['transaction_amount'] ?? $data['net_amount'] ?? $data['amount'] ?? $data['amount_paid'] ?? $data['paid_amount'] ?? 0;
+                    // For PayVibe, prioritize net_amount over transaction_amount since net_amount is what we actually received
+                    $amountReceived = $data['net_amount'] ?? $data['settled_amount'] ?? $data['transaction_amount'] ?? $data['amount'] ?? $data['amount_paid'] ?? $data['paid_amount'] ?? 0;
                     $status = strtolower($data['status'] ?? $data['payment_status'] ?? 'successful'); // Default to successful for PayVibe
         
                             \Log::info('PayVibe IPN: Extracted transaction details', [
@@ -231,6 +232,7 @@ class ProcessController extends Controller
                         'product_identifier' => $productIdentifier,
                         'transaction_amount' => $data['transaction_amount'] ?? null,
                         'net_amount' => $data['net_amount'] ?? null,
+                        'settled_amount' => $data['settled_amount'] ?? null,
                         'amount_received' => $amountReceived,
                         'status' => $status,
                         'data' => $data
@@ -280,30 +282,54 @@ class ProcessController extends Controller
         }
         $mismatch = false;
     
-                            // For PayVibe, we should use the ACTUAL amount received from PayVibe
-                    // This prevents users from getting credited more than they actually paid
-                    $actualAmountReceived = $amountReceived; // This is the net_amount from PayVibe
-                    $gateWayCurrency = $deposit->gatewayCurrency();
+                            // For PayVibe, handle amount matching with penalty for underpayment
+                    $actualAmountReceived = $amountReceived; // This is what PayVibe actually received
+                    $originalDepositAmount = $deposit->amount; // This is what user originally wanted to deposit
+                    $expectedFinalAmount = $deposit->final_amo; // This is what user was supposed to pay
+                    $transactionAmount = $data['transaction_amount'] ?? 0; // What user actually paid
                     
-                    // Calculate our charges based on the ACTUAL amount received
-                    $deposit->charge = $gateWayCurrency->fixed_charge + (round($actualAmountReceived, 2)* ($gateWayCurrency->percent_charge /100));
-                    if($actualAmountReceived >= 10000){
-                        $deposit->charge = $gateWayCurrency->fixed_charge + (round($actualAmountReceived, 2)* (($gateWayCurrency->percent_charge + 0.5) /100));
+                    // Check if transaction amount matches expected final amount
+                    if (abs($transactionAmount - $expectedFinalAmount) < 1) { // Using 1 naira tolerance for floating point
+                        // Amount matches - credit user the original deposit amount
+                        $deposit->amount = $originalDepositAmount;
+                        $deposit->charge = max(0, $actualAmountReceived - $originalDepositAmount);
+                        $mismatch = false;
+                    } elseif ($transactionAmount > $expectedFinalAmount) {
+                        // User overpaid - credit them their intended deposit amount
+                        $deposit->amount = $originalDepositAmount;
+                        $deposit->charge = max(0, $actualAmountReceived - $originalDepositAmount);
+                        $mismatch = true;
+                    } else {
+                        // User underpaid - apply charges and credit the balance (penalty for underpayment)
+                        $gateWayCurrency = $deposit->gatewayCurrency();
+                        
+                        // Calculate charges based on what user actually paid
+                        $deposit->charge = $gateWayCurrency->fixed_charge + (round($transactionAmount, 2) * ($gateWayCurrency->percent_charge / 100));
+                        if ($transactionAmount >= 10000) {
+                            $deposit->charge = $gateWayCurrency->fixed_charge + (round($transactionAmount, 2) * (($gateWayCurrency->percent_charge + 0.5) / 100));
+                        }
+                        
+                        // Credit user the balance after charges (penalty for underpayment)
+                        $deposit->amount = max(0, $transactionAmount - $deposit->charge);
+                        $mismatch = true;
                     }
                     
-                    // Calculate amount to credit to user (actual amount received minus our charges)
-                    $deposit->amount = max(0, $actualAmountReceived - $deposit->charge);
-                    $deposit->amount = round($deposit->amount / 10) * 10; // Round to nearest 10
+                    // Ensure the amount is rounded to nearest 10
+                    $deposit->amount = round($deposit->amount / 10) * 10;
         
                             // Log the calculation for debugging
                     \Log::info('PayVibe IPN: Amount calculation', [
                         'reference' => $reference,
                         'actual_amount_received' => $actualAmountReceived,
-                        'payvibe_net_amount' => $amountReceived,
-                        'our_charge' => $deposit->charge,
+                        'payvibe_net_amount' => $data['net_amount'] ?? null,
+                        'payvibe_settled_amount' => $data['settled_amount'] ?? null,
+                        'payvibe_transaction_amount' => $transactionAmount,
+                        'expected_final_amount' => $expectedFinalAmount,
+                        'original_deposit_amount' => $originalDepositAmount,
                         'amount_to_credit' => $deposit->amount,
-                        'original_deposit_amount' => $deposit->final_amo,
-                        'difference' => $deposit->final_amo - $actualAmountReceived
+                        'our_charge' => $deposit->charge,
+                        'payment_scenario' => $transactionAmount > $expectedFinalAmount ? 'overpayment' : ($transactionAmount < $expectedFinalAmount ? 'underpayment' : 'exact'),
+                        'mismatch' => $mismatch
                     ]);
         
         $deposit->save();
