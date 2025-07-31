@@ -195,3 +195,63 @@
 #19 /Users/amiithyone/Documents/faddedsocials/socials /debug_payvibe.php(16): Illuminate\\Database\\Eloquent\\Builder->first()
 #20 {main}
 "} 
+[2025-07-30 18:12:10] local.ERROR: Undefined array key "service" {"exception":"[object] (ErrorException(code: 0): Undefined array key \"service\" at /Users/amiithyone/Documents/faddedsocials/socials /test_payvibe_account_generation.php:41)
+[stacktrace]
+#0 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(270): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->handleError(2, 'Undefined array...', '/Users/amiithyo...', 41)
+#1 /Users/amiithyone/Documents/faddedsocials/socials /test_payvibe_account_generation.php(41): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->Illuminate\\Foundation\\Bootstrap\\{closure}(2, 'Undefined array...', '/Users/amiithyo...', 41)
+#2 {main}
+"} 
+[2025-07-30 21:02:54] production.ERROR: Class "UserController" does not exist {"exception":"[object] (ReflectionException(code: -1): Class \"UserController\" does not exist at /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteListCommand.php:234)
+[stacktrace]
+#0 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteListCommand.php(234): ReflectionClass->__construct('UserController')
+#1 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteListCommand.php(156): Illuminate\\Foundation\\Console\\RouteListCommand->isVendorRoute(Object(Illuminate\\Routing\\Route))
+#2 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteListCommand.php(125): Illuminate\\Foundation\\Console\\RouteListCommand->getRouteInformation(Object(Illuminate\\Routing\\Route))
+#3 [internal function]: Illuminate\\Foundation\\Console\\RouteListCommand->Illuminate\\Foundation\\Console\\{closure}(Object(Illuminate\\Routing\\Route), 235)
+#4 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Collections/Arr.php(560): array_map(Object(Closure), Array, Array)
+#5 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Collections/Collection.php(768): Illuminate\\Support\\Arr::map(Array, Object(Closure))
+#6 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteListCommand.php(124): Illuminate\\Support\\Collection->map(Object(Closure))
+#7 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteListCommand.php(110): Illuminate\\Foundation\\Console\\RouteListCommand->getRoutes()
+#8 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate\\Foundation\\Console\\RouteListCommand->handle()
+#9 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Container/Util.php(41): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#10 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#11 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#12 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Container/Container.php(661): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#13 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Console/Command.php(183): Illuminate\\Container\\Container->call(Array)
+#14 /Users/amiithyone/Documents/faddedsocials/socials /vendor/symfony/console/Command/Command.php(326): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#15 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Console/Command.php(152): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#16 /Users/amiithyone/Documents/faddedsocials/socials /vendor/symfony/console/Application.php(1078): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 /Users/amiithyone/Documents/faddedsocials/socials /vendor/symfony/console/Application.php(324): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\RouteListCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 /Users/amiithyone/Documents/faddedsocials/socials /vendor/symfony/console/Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Console/Application.php(102): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 /Users/amiithyone/Documents/faddedsocials/socials /vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(155): Illuminate\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#21 /Users/amiithyone/Documents/faddedsocials/socials /artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#22 {main}
+"} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN received {"headers":[],"body":"","json":[],"all":{"data":{"reference":"TEST123456789","amount":1000,"status":"successful"},"hash":"test_hash_123"}} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN payload structure {"payload":{"data":{"reference":"TEST123456789","amount":1000,"status":"successful"},"hash":"test_hash_123"},"has_data":true,"has_hash":true,"keys":["data","hash"]} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN hash verification {"data":{"reference":"TEST123456789","amount":1000,"status":"successful"},"hash":"test_hash_123","has_access_key":true} 
+[2025-07-30 21:16:03] production.WARNING: PayVibe IPN: Hash verification failed {"expected":"a91a2af4ac6e8934f79c3856e4041a18db4ef2354b4de623c2b4ad4dacc2036c","received":"test_hash_123"} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN received {"headers":[],"body":"","json":[],"all":{"reference":"TEST123456789","amount":1000,"status":"successful","hash":"test_hash_123"}} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN payload structure {"payload":{"reference":"TEST123456789","amount":1000,"status":"successful","hash":"test_hash_123"},"has_data":false,"has_hash":true,"keys":["reference","amount","status","hash"]} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN hash verification {"data":{"reference":"TEST123456789","amount":1000,"status":"successful","hash":"test_hash_123"},"hash":"test_hash_123","has_access_key":true} 
+[2025-07-30 21:16:03] production.WARNING: PayVibe IPN: Hash verification failed {"expected":"a0dfe4f08dfc94788beeb669f83dcc1fcf16f91aa4d788b19bde3c8b39b4b3b2","received":"test_hash_123"} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN received {"headers":[],"body":"","json":[],"all":{"ref":"TEST123456789","amount_paid":1000,"payment_status":"successful","signature":"test_signature_123"}} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN payload structure {"payload":{"ref":"TEST123456789","amount_paid":1000,"payment_status":"successful","signature":"test_signature_123"},"has_data":false,"has_hash":false,"keys":["ref","amount_paid","payment_status","signature"]} 
+[2025-07-30 21:16:03] production.ERROR: PayVibe IPN: Unknown payload structure {"payload":{"ref":"TEST123456789","amount_paid":1000,"payment_status":"successful","signature":"test_signature_123"}} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN received {"headers":[],"body":"","json":[],"all":{"transaction_id":"TEST123456789","paid_amount":1000,"status":"successful"}} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN payload structure {"payload":{"transaction_id":"TEST123456789","paid_amount":1000,"status":"successful"},"has_data":false,"has_hash":false,"keys":["transaction_id","paid_amount","status"]} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN hash verification {"data":{"transaction_id":"TEST123456789","paid_amount":1000,"status":"successful"},"hash":null,"has_access_key":true} 
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN: Skipping hash verification (no hash or key provided)  
+[2025-07-30 21:16:03] production.INFO: PayVibe IPN: Extracted transaction details {"reference":"TEST123456789","amount_received":1000,"status":"successful","data":{"transaction_id":"TEST123456789","paid_amount":1000,"status":"successful"}} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN received {"headers":[],"body":"","json":[],"all":{"reference":"12345078941","product_identifier":"fadded_sms","amount":5000}} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN payload structure {"payload":{"reference":"12345078941","product_identifier":"fadded_sms","amount":5000},"has_data":false,"has_hash":false,"keys":["reference","product_identifier","amount"]} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN hash verification {"data":{"reference":"12345078941","product_identifier":"fadded_sms","amount":5000},"hash":null,"has_access_key":true} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN: Skipping hash verification (no hash or key provided)  
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN: Extracted transaction details {"reference":"12345078941","product_identifier":"fadded_sms","amount_received":5000,"status":"successful","data":{"reference":"12345078941","product_identifier":"fadded_sms","amount":5000}} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN: Product identifier {"product_identifier":"fadded_sms","reference":"12345078941"} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN received {"headers":[],"body":"","json":[],"all":{"reference":"12345078942","product_identifier":"fadded_sms"}} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN payload structure {"payload":{"reference":"12345078942","product_identifier":"fadded_sms"},"has_data":false,"has_hash":false,"keys":["reference","product_identifier"]} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN hash verification {"data":{"reference":"12345078942","product_identifier":"fadded_sms"},"hash":null,"has_access_key":true} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN: Skipping hash verification (no hash or key provided)  
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN: Extracted transaction details {"reference":"12345078942","product_identifier":"fadded_sms","amount_received":0,"status":"successful","data":{"reference":"12345078942","product_identifier":"fadded_sms"}} 
+[2025-07-30 21:18:06] production.INFO: PayVibe IPN: Product identifier {"product_identifier":"fadded_sms","reference":"12345078942"} 

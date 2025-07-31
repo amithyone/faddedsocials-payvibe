@@ -274,9 +274,7 @@ class UserController extends Controller
     public function depositNew(Request $request)
     {
         $pageTitle = 'Fund Wallet';
-        $gateway_currency = GatewayCurrency::whereHas('method', function ($gate) {
-            $gate->where('status', Status::ENABLE);
-        })->get();
+        $gateway_currency = GatewayCurrency::where('status', 1)->get();
         $deposits = Deposit::latest()->where('user_id', Auth::id())->with('gateway', 'order')->paginate('5');
         return view($this->activeTemplate . 'user.deposit_new', compact('pageTitle', 'gateway_currency', 'deposits'));
     }
