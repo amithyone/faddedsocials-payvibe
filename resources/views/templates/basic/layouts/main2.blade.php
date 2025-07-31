@@ -432,7 +432,6 @@
 
 
 
-<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script src="{{url('')}}/assets/assets2/js/plugins/popper.min.js"></script>
 <script src="{{url('')}}/assets/assets2/js/plugins/simplebar.min.js"></script>
 <script src="{{url('')}}/assets/assets2/js/plugins/bootstrap.min.js"></script>
@@ -452,13 +451,7 @@
 <!-- [Page Specific JS] start -->
 <!-- Removed problematic scripts -->
 <!-- [Page Specific JS] end -->
-<!-- [ Main Content ] end --><!-- Required Js -->
-<script src="{{url('')}}/assets/assets2/js/plugins/popper.min.js"></script>
-<script src="{{url('')}}/assets/assets2/js/plugins/simplebar.min.js"></script>
-<script src="{{url('')}}/assets/assets2/js/plugins/bootstrap.min.js"></script>
-<script src="{{url('')}}/assets/assets2/js/fonts/custom-font.js"></script>
-<script src="{{url('')}}/assets/assets2/js/pcoded.js"></script>
-<script src="{{url('')}}/assets/assets2/js/plugins/feather.min.js"></script>
+<!-- [ Main Content ] end -->
 <script>
     layout_change("false");
 </script>
