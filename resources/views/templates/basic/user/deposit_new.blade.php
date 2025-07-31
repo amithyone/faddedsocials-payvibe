@@ -63,8 +63,8 @@
                                 <div class="alert alert-info mt-2" id="payment-info">
                                     <small>
                                         <strong>Payment Method Guidelines:</strong><br>
-                                        • <strong>PayVibe:</strong> Available for amounts below ₦10,000<br>
-                                        • <strong>Payaza:</strong> Available for amounts ₦10,000 and above
+                                        • <strong>All payment methods:</strong> Available for amounts below ₦10,000<br>
+                                        • <strong>Instant Payment (Payaza):</strong> Available for amounts ₦10,000 and above
                                     </small>
                                 </div>
                             </div>
@@ -227,24 +227,15 @@
                 var methodCode = parseInt(option.methodCode);
                 var showOption = true;
                 
-                // PayVibe (method_code 120) - only show for amounts below 10,000
-                if (methodCode == 120) {
-                    showOption = amount < 10000;
-                }
-                // Payaza (method_code 119) - show for amounts 10,000 and above
-                else if (methodCode == 119) {
-                    showOption = amount >= 10000;
-                }
-                // Xtrapay (method_code 118) - show for amounts 10,000 and above
-                else if (methodCode == 118) {
-                    showOption = amount >= 10000;
-                }
-                // Manual payments (method_code >= 1000) - show for amounts 10,000 and above
-                else if (methodCode >= 1000) {
-                    showOption = amount >= 10000;
-                }
-                // Other gateways - show for all amounts
-                else {
+                // For amounts 10,000 and above, only show Payaza (119) as instant payment
+                if (amount >= 10000) {
+                    if (methodCode == 119) {
+                        showOption = true;
+                    } else {
+                        showOption = false;
+                    }
+                } else {
+                    // For amounts below 10,000, show all payment methods
                     showOption = true;
                 }
                 
@@ -315,9 +306,9 @@
             var $paymentInfo = $('#payment-info');
             if (amount > 0) {
                 if (amount < 10000) {
-                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>PayVibe:</strong> Available for amounts below ₦10,000<br>• <strong>Payaza:</strong> Available for amounts ₦10,000 and above</small>');
+                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>All payment methods:</strong> Available for amounts below ₦10,000<br>• <strong>Instant Payment (Payaza):</strong> Available for amounts ₦10,000 and above</small>');
                 } else {
-                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>Payaza:</strong> Available for amounts ₦10,000 and above<br>• <strong>PayVibe:</strong> Available for amounts below ₦10,000</small>');
+                    $paymentInfo.html('<small><strong>Payment Method Guidelines:</strong><br>• <strong>Instant Payment (Payaza):</strong> Available for amounts ₦10,000 and above<br>• <strong>All payment methods:</strong> Available for amounts below ₦10,000</small>');
                 }
             }
         });
