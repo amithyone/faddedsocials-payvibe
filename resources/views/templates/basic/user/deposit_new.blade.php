@@ -81,10 +81,10 @@
                                     <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is unavailable for amounts over ₦7,500. Please select another payment method.</small>
                                 </div>
                                 <div id="xtrapay-notice" class="alert alert-warning mt-3" style="display: none;" role="alert" aria-live="polite">
-                                    <small><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> XtraPay is unavailable for amounts below ₦7,500. Please select another payment method.</small>
+                                    <small><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> XtraPay is unavailable for amounts below ₦7,500. Please select PayVibe or Manual payment.</small>
                                 </div>
                                 <div id="manual-notice" class="alert alert-success mt-3" style="display: none;" role="alert" aria-live="polite">
-                                    <small><i class="fas fa-check-circle" aria-hidden="true"></i> Manual payment is recommended for amounts above ₦7,500.</small>
+                                    <small><i class="fas fa-check-circle" aria-hidden="true"></i> Manual payment is available for all amounts.</small>
                                 </div>
                             </div>
                         </div>
@@ -126,31 +126,34 @@
                                     manualNotice.hide();
 
                                     if (amount > 7500) {
-                                        // Amount > 7500: Disable PayVibe and XtraPay, recommend Manual
+                                        // Amount > 7500: Disable PayVibe, enable XtraPay and Manual
                                         payvibeOption.prop('disabled', true);
-                                        xtrapayOption.prop('disabled', true);
+                                        xtrapayOption.prop('disabled', false);
+                                        manualOption.prop('disabled', false);
                                         payvibeNotice.show();
-                                        xtrapayNotice.show();
-                                        manualNotice.show();
-                                        console.log('Disabled PayVibe and XtraPay, recommended Manual');
+                                        xtrapayNotice.hide();
+                                        manualNotice.hide();
+                                        console.log('Disabled PayVibe, enabled XtraPay and Manual');
                                         
-                                        // If PayVibe or XtraPay is currently selected, clear the selection
-                                        if (gatewaySelect.val() == '120' || gatewaySelect.val() == '118') {
+                                        // If PayVibe is currently selected, clear the selection
+                                        if (gatewaySelect.val() == '120') {
                                             gatewaySelect.val('');
-                                            console.log('Cleared PayVibe/XtraPay selection');
+                                            console.log('Cleared PayVibe selection');
                                         }
                                     } else {
-                                        // Amount <= 7500: Disable XtraPay and Manual, recommend PayVibe
+                                        // Amount <= 7500: Enable PayVibe and Manual, disable XtraPay
+                                        payvibeOption.prop('disabled', false);
                                         xtrapayOption.prop('disabled', true);
-                                        manualOption.prop('disabled', true);
+                                        manualOption.prop('disabled', false);
+                                        payvibeNotice.hide();
                                         xtrapayNotice.show();
-                                        manualNotice.show();
-                                        console.log('Disabled XtraPay and Manual, recommended PayVibe');
+                                        manualNotice.hide();
+                                        console.log('Enabled PayVibe and Manual, disabled XtraPay');
                                         
-                                        // If XtraPay or Manual is currently selected, clear the selection
-                                        if (gatewaySelect.val() == '118' || gatewaySelect.val() == '1000') {
+                                        // If XtraPay is currently selected, clear the selection
+                                        if (gatewaySelect.val() == '118') {
                                             gatewaySelect.val('');
-                                            console.log('Cleared XtraPay/Manual selection');
+                                            console.log('Cleared XtraPay selection');
                                         }
                                     }
                                 }
