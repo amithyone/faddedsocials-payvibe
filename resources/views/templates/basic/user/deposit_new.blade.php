@@ -80,6 +80,12 @@
                                 <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;" role="alert" aria-live="polite">
                                     <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is unavailable for amounts over ₦7,500. Please select another payment method.</small>
                                 </div>
+                                <div id="xtrapay-notice" class="alert alert-warning mt-3" style="display: none;" role="alert" aria-live="polite">
+                                    <small><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> XtraPay is unavailable for amounts below ₦7,500. Please select another payment method.</small>
+                                </div>
+                                <div id="manual-notice" class="alert alert-success mt-3" style="display: none;" role="alert" aria-live="polite">
+                                    <small><i class="fas fa-check-circle" aria-hidden="true"></i> Manual payment is recommended for amounts above ₦7,500.</small>
+                                </div>
                             </div>
                         </div>
 
@@ -95,30 +101,57 @@
                                 console.log('PayVibe disable filter loaded');
                                 console.log('jQuery version:', $.fn.jquery);
 
-                                function togglePayVibe() {
+                                function togglePaymentMethods() {
                                     var amount = parseInt($('input[name="amount"]').val()) || 0;
                                     var payvibeOption = $('#gateway option[value="120"]');
+                                    var xtrapayOption = $('#gateway option[value="118"]');
+                                    var manualOption = $('#gateway option[value="1000"]');
                                     var payvibeNotice = $('#payvibe-notice');
+                                    var xtrapayNotice = $('#xtrapay-notice');
+                                    var manualNotice = $('#manual-notice');
                                     var gatewaySelect = $('#gateway');
 
                                     console.log('Amount:', amount);
                                     console.log('PayVibe option found:', payvibeOption.length > 0);
+                                    console.log('XtraPay option found:', xtrapayOption.length > 0);
+                                    console.log('Manual option found:', manualOption.length > 0);
                                     console.log('Current gateway value:', gatewaySelect.val());
 
+                                    // Reset all options and notices
+                                    payvibeOption.prop('disabled', false);
+                                    xtrapayOption.prop('disabled', false);
+                                    manualOption.prop('disabled', false);
+                                    payvibeNotice.hide();
+                                    xtrapayNotice.hide();
+                                    manualNotice.hide();
+
                                     if (amount > 7500) {
+                                        // Amount > 7500: Disable PayVibe and XtraPay, recommend Manual
                                         payvibeOption.prop('disabled', true);
+                                        xtrapayOption.prop('disabled', true);
                                         payvibeNotice.show();
-                                        console.log('Disabled PayVibe');
+                                        xtrapayNotice.show();
+                                        manualNotice.show();
+                                        console.log('Disabled PayVibe and XtraPay, recommended Manual');
                                         
-                                        // If PayVibe is currently selected, clear the selection
-                                        if (gatewaySelect.val() == '120') {
+                                        // If PayVibe or XtraPay is currently selected, clear the selection
+                                        if (gatewaySelect.val() == '120' || gatewaySelect.val() == '118') {
                                             gatewaySelect.val('');
-                                            console.log('Cleared PayVibe selection');
+                                            console.log('Cleared PayVibe/XtraPay selection');
                                         }
                                     } else {
-                                        payvibeOption.prop('disabled', false);
-                                        payvibeNotice.hide();
-                                        console.log('Enabled PayVibe');
+                                        // Amount <= 7500: Disable XtraPay and Manual, recommend PayVibe
+                                        xtrapayOption.prop('disabled', true);
+                                        manualOption.prop('disabled', true);
+                                        xtrapayNotice.show();
+                                        manualNotice.show();
+                                        console.log('Disabled XtraPay and Manual, recommended PayVibe');
+                                        
+                                        // If XtraPay or Manual is currently selected, clear the selection
+                                        if (gatewaySelect.val() == '118' || gatewaySelect.val() == '1000') {
+                                            gatewaySelect.val('');
+                                            console.log('Cleared XtraPay/Manual selection');
+                                        }
                                     }
                                 }
 
@@ -144,12 +177,12 @@
                                 // Monitor amount input
                                 $('input[name="amount"]').on('input', function() {
                                     console.log('Amount changed:', $(this).val());
-                                    togglePayVibe();
+                                    togglePaymentMethods();
                                 });
 
                                 // Initial run
-                                console.log('Running initial togglePayVibe');
-                                togglePayVibe();
+                                console.log('Running initial togglePaymentMethods');
+                                togglePaymentMethods();
                             });
                         </script>
             </form>
