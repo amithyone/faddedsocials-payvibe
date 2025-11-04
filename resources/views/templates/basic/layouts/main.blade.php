@@ -1028,8 +1028,8 @@ s0.parentNode.insertBefore(s1,s0);
 
         </div>
         <ul class="messages">
-            <li style="color: white" class="other"><a style="color: white"  href="https://whatsapp.com/channel/0029VbAcPAVFMqrbCK1l0T1X" target="_blank"><i class="bi bi-telegram"> </i> Get Support </a></li>
-            <li style="color: white" class="other"><a style="color: white"  href="https://whatsapp.com/channel/0029VbAcPAVFMqrbCK1l0T1X" target="_blank"><i class="bi bi-telegram"> </i> Join our channel</a></li>
+            <li style="color: white" class="other"><a style="color: white"  href="https://t.me/faddedsocialsteam" target="_blank"><i class="bi bi-telegram"> </i> Get Support </a></li>
+            <li style="color: white" class="other"><a style="color: white"  href="https://t.me/faddedsocialsteam" target="_blank"><i class="bi bi-telegram"> </i> Join our channel</a></li>
         </ul>
     </div>
 </div>
