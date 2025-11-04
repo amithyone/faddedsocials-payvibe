@@ -192,7 +192,7 @@
 
             <a href="https://t.me/faddedsocailsmanual"
                class="btn btn-warning w-100 my-3"> Having Manual Payment issues? Click here to Resolve</a>
-               <a href="https://api.whatsapp.com/send/?phone=17864041871&text&type=phone_number&app_absent=0"
+               <a href="https://t.me/faddedsocialsteam"
                class="btn btn-warning w-100 my-3"> Having Instant payment issues? Click here to Resolve</a>
         </div>
     </div>

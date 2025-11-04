@@ -291,9 +291,9 @@
                                                 </td>
                                                 <td>
                                                     @if($order->status == 0)
-                                                    <a class="btn btn-dark btn-sm" href="https://wa.me/+2349036138449?text=Hello+Chequest+PL+i+want+to+place+gift+orders+my+orderID+is+{{$order->id}}+my+username+is+{{Auth::user()->username}}" target="_blank"><i class="fa fa-money-bill"></i> Make Payment</a>
+                                                    <a class="btn btn-dark btn-sm" href="https://t.me/faddedsocialsteam" target="_blank"><i class="fa fa-money-bill"></i> Make Payment</a>
                                                     @elseif($order->status == 4)
-                                                        <a class="btn btn-danger btn-sm" href="https://wa.me/+2349036138449?text=Hello+Chequest+PL+i+want+report+this+order+my+orderID+is+{{$order->id}}+my+username+is+{{Auth::user()->username}}"><i class="fa fa-contact-card"></i> Report Order</a>
+                                                        <a class="btn btn-danger btn-sm" href="https://t.me/faddedsocialsteam"><i class="fa fa-contact-card"></i> Report Order</a>
                                                     @else
                                                         <a class="btn btn-dark btn-sm" href="/user/track-order?id={{$order->id}}"><i class="fa fa-location-arrow"></i> Track Order</a>
                                                     @endif

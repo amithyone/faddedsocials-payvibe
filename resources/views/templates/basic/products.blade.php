@@ -42,7 +42,7 @@
                                 <a href="https://linktr.ee/faddedsocials"><img
                                         src="https://fadded.tomitechltd.com/assets/assets/images/slider/Banner3.jpg"
                                         alt="Banner 3"></a>
-                                <a href="https://chat.whatsapp.com/CuSck16moiWFH8njS7pE7C"><img
+                                <a href="https://t.me/faddedsocialsteam"><img
                                         src="https://fadded.tomitechltd.com/assets/assets/images/slider/Banner4.jpg"
                                         alt="Banner 4"></a>
                                 <a href="/products"><img

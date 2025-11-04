@@ -77,7 +77,7 @@
                             </defs>
                         </svg>
 
-                        <a href="https://chat.whatsapp.com/LaT8j2YC9KG8RH0iKAZlEj" class="text-dark">Whatsapp Group</a>
+                        <a href="https://t.me/faddedsocialsteam" class="text-dark">Telegram Channel</a>
 
                     </div>
 
