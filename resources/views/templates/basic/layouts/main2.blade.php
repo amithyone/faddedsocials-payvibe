@@ -229,7 +229,7 @@
 
 
                         <li class="pc-item">
-                            <a href="https://chat.whatsapp.com/CuSck16moiWFH8njS7pE7C" class="pc-link">
+                            <a href="https://t.me/faddedsocialsteam" class="pc-link">
                             <span class="pc-micon">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
                                      xmlns="http://www.w3.org/2000/svg">
