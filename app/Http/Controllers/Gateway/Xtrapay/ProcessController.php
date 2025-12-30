@@ -35,10 +35,8 @@ class ProcessController extends Controller
         
             // Update deposit transaction reference
             $deposit->trx = $reference;
-            $deposit->charge = $gateWayCurrency->fixed_charge + (round($deposit->amount, 2)* ($gateWayCurrency->percent_charge /100));
-            if($deposit->amount >= 10000){
-                $deposit->charge = $gateWayCurrency->fixed_charge + (round($deposit->amount, 2)* (($gateWayCurrency->percent_charge + 0.5) /100));
-            }
+            // Calculate charge: 1.5% + 100 for all amounts
+            $deposit->charge = 100 + round($deposit->amount * 0.015, 2);
             $deposit->final_amo = round($deposit->amount + $deposit->charge, 0);
             $deposit->save();
         
@@ -157,11 +155,8 @@ class ProcessController extends Controller
             $this->updateDepositInfo($reference, "Amount mismatch: Expected {$deposit->final_amo}, received {$amountReceived}", $data);
             $mismatch = true;
             $deposit->final_amo = $amountReceived;
-            $gateWayCurrency = $deposit->gatewayCurrency();
-            $deposit->charge = $gateWayCurrency->fixed_charge + (round($amountReceived, 2)* ($gateWayCurrency->percent_charge /100));
-            if($amountReceived >= 10000){
-                $deposit->charge = $gateWayCurrency->fixed_charge + (round($amountReceived, 2)* (($gateWayCurrency->percent_charge + 0.5) /100));
-            }
+            // Calculate charge: 1.5% + 100 for all amounts
+            $deposit->charge = 100 + round($amountReceived * 0.015, 2);
             $deposit->amount = $deposit->final_amo - $deposit->charge;
             $deposit->save();
         }
