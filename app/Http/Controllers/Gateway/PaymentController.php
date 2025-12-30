@@ -31,7 +31,9 @@ class PaymentController extends Controller
                 return back()->with('error', $notify);
             }
 
-            if ($request->amount > 500000) {
+            // XtraPay (gateway 118) accepts all amounts - no upper limit
+            // Other gateways have a 500,000 maximum limit
+            if ($request->gateway != 118 && $request->amount > 500000) {
                 $notify = "Amount cannot be more than 500,000";
                 return back()->with('error', $notify);
             }
