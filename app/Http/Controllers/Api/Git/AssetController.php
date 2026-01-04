@@ -9,6 +9,7 @@ use App\Models\AssetLog;
 use App\Constants\Status;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AssetController extends Controller
 {
@@ -125,9 +126,13 @@ class AssetController extends Controller
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Git API retrieveAssets error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error retrieving assets'
+                'message' => 'Error retrieving assets: ' . $e->getMessage()
             ], 500);
         }
     }
