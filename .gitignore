@@ -16,3 +16,5 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
+/test_api_local.sh
+/QUICK_TEST.md
