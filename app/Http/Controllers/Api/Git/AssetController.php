@@ -108,10 +108,8 @@ class AssetController extends Controller
             // Bulk insert asset logs
             if (!empty($bulkLogData)) {
                 AssetLog::insert($bulkLogData);
-                $assetLogs = AssetLog::where('asset_id', $productId)
-                    ->whereIn('asset_detail_id', $detailIds)
-                    ->pluck('id')
-                    ->toArray();
+                // No need to query back - we know the IDs we inserted
+                // This saves an expensive query after bulk insert
             }
 
             DB::commit();
@@ -152,11 +150,12 @@ class AssetController extends Controller
     public function listProducts(Request $request)
     {
         try {
-            $query = Product::withCount([
-                'productDetails as available_stock_count' => function($q) {
-                    $q->where('is_sold', Status::NO);
-                }
-            ]);
+            // Optimized: Use selectRaw with subquery for better performance with indexes
+            $query = Product::selectRaw('products.*, 
+                (SELECT COUNT(*) FROM product_details 
+                 WHERE product_details.product_id = products.id 
+                 AND product_details.is_sold = ?) as available_stock_count', 
+                [Status::NO]);
 
             // Apply filters
             if ($request->has('category_id') && $request->category_id) {
@@ -224,7 +223,12 @@ class AssetController extends Controller
     public function listLogs(Request $request)
     {
         try {
-            $query = AssetLog::with(['product', 'productDetail']);
+            // Optimized: Only eager load if needed, use select to limit columns
+            $query = AssetLog::with([
+                'product' => function($q) {
+                    $q->select('id', 'name'); // Only select needed columns
+                }
+            ])->select('asset_logs.*'); // Explicit select for clarity
 
             // Apply filters
             if ($request->has('asset_id') && $request->asset_id) {
