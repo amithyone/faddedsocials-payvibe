@@ -57,12 +57,16 @@ class AssetController extends Controller
 
             $retrievedDetails = [];
             $assetLogs = [];
+            $detailIds = [];
+            $bulkLogData = [];
 
+            // Collect data first (before any modifications)
             foreach ($productDetails as $productDetail) {
-                // Store product detail data BEFORE processing (important for delete)
                 $detailId = $productDetail->id;
+                $detailIds[] = $detailId;
                 $detailData = $productDetail->details ?? null;
-                $detailCreatedAt = $productDetail->created_at->toDateTimeString();
+                // Safely handle created_at (may be null)
+                $detailCreatedAt = $productDetail->created_at ? $productDetail->created_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s');
                 
                 $assetData = [
                     'product_detail_id' => $detailId,
@@ -71,25 +75,15 @@ class AssetController extends Controller
                     'created_at' => $detailCreatedAt,
                 ];
 
-                if ($action === 'archive') {
-                    // Mark as sold (archive)
-                    $productDetail->is_sold = Status::YES;
-                    $productDetail->save();
-                    $status = 'archived';
-                } else {
-                    // Remove (delete) - delete first, then log
-                    $productDetail->delete();
-                    $status = 'removed';
-                }
-
-                // Create asset log entry
-                $assetLog = AssetLog::create([
+                $bulkLogData[] = [
                     'asset_id' => $productId,
                     'asset_detail_id' => $detailId,
                     'processed_by' => $processedBy,
                     'process_type' => $action,
-                    'asset_data' => $assetData,
-                ]);
+                    'asset_data' => json_encode($assetData),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
 
                 $retrievedDetails[] = [
                     'id' => $detailId,
@@ -97,10 +91,27 @@ class AssetController extends Controller
                     'product_name' => $product->name,
                     'product_amount' => (float) $product->price,
                     'details' => $detailData,
-                    'status' => $status,
+                    'status' => $action === 'archive' ? 'archived' : 'removed',
                 ];
+            }
 
-                $assetLogs[] = $assetLog->id;
+            // Bulk operations for better performance
+            if ($action === 'archive') {
+                // Bulk update: mark all as sold
+                ProductDetail::whereIn('id', $detailIds)
+                    ->update(['is_sold' => Status::YES]);
+            } else {
+                // Bulk delete
+                ProductDetail::whereIn('id', $detailIds)->delete();
+            }
+
+            // Bulk insert asset logs
+            if (!empty($bulkLogData)) {
+                AssetLog::insert($bulkLogData);
+                $assetLogs = AssetLog::where('asset_id', $productId)
+                    ->whereIn('asset_detail_id', $detailIds)
+                    ->pluck('id')
+                    ->toArray();
             }
 
             DB::commit();
@@ -126,10 +137,8 @@ class AssetController extends Controller
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Git API retrieveAssets error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
-            ]);
+            // Reduced logging - only log message, not full trace (saves CPU/disk)
+            \Log::error('Git API retrieveAssets error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error retrieving assets: ' . $e->getMessage()
