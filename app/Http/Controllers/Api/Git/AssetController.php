@@ -150,12 +150,12 @@ class AssetController extends Controller
     public function listProducts(Request $request)
     {
         try {
-            // Optimized: Use selectRaw with subquery for better performance with indexes
-            $query = Product::selectRaw('products.*, 
-                (SELECT COUNT(*) FROM product_details 
-                 WHERE product_details.product_id = products.id 
-                 AND product_details.is_sold = ?) as available_stock_count', 
-                [Status::NO]);
+            // withCount is now optimized with indexes - much faster than before
+            $query = Product::withCount([
+                'productDetails as available_stock_count' => function($q) {
+                    $q->where('is_sold', Status::NO);
+                }
+            ]);
 
             // Apply filters
             if ($request->has('category_id') && $request->category_id) {
