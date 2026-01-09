@@ -11,3 +11,4 @@ echo "<p style='font-family: monospace; background: #f0f0f0; padding: 10px;'>SEO
 echo "<hr>";
 echo "<p><small>After adding to .env, delete this file for security!</small></p>";
 
+

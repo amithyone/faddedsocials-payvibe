@@ -40,3 +40,4 @@ class AssetLog extends Model
     }
 }
 
+

@@ -107,35 +107,47 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-
-
-
-
-
-
         $general = gs();
 
+        // Validate that email is present and not empty
+        if (empty($data['email']) || !isset($data['email'])) {
+            \Log::error('Registration failed: Email is missing', ['data' => $data]);
+            throw new \Illuminate\Validation\ValidationException(
+                \Illuminate\Support\Facades\Validator::make([], [])
+                    ->errors()
+                    ->add('email', 'Email is required')
+            );
+        }
+
+        // Ensure email is properly formatted
+        $email = strtolower(trim($data['email']));
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            \Log::error('Registration failed: Invalid email format', ['email' => $email, 'data' => $data]);
+            throw new \Illuminate\Validation\ValidationException(
+                \Illuminate\Support\Facades\Validator::make([], [])
+                    ->errors()
+                    ->add('email', 'Invalid email format')
+            );
+        }
+
         if ($data['code'] != "null") {
-            $email = User::where('referal_code', $data['code'])->first()->email;
+            $referrerEmail = User::where('referal_code', $data['code'])->first()->email;
             $username = User::where('referal_code', $data['code'])->first()->username;
-            $get_email = Referre::where('email_2', $data['email'])->first()->email ?? null;
+            $get_email = Referre::where('email_2', $email)->first()->email ?? null;
 
             $ref = new Referre();
-            $ref->email = $email;
-            $ref->email_2 = trim($data['email']);
+            $ref->email = $referrerEmail;
+            $ref->email_2 = $email;
             $ref->referer = $username;
             $ref->refrere = trim($data['username']);
             $ref->save();
 
-
-            User::where('email', $email)->increment('sign_up_count', 1);
-
-
+            User::where('email', $referrerEmail)->increment('sign_up_count', 1);
         }
 
         //User Create
         $user = new User();
-        $user->email = strtolower(trim($data['email']));
+        $user->email = $email;
         $user->password = Hash::make($data['password']);
         $user->username = trim($data['username']);
         $user->country_code = 234;

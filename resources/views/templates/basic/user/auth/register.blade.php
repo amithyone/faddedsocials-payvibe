@@ -119,9 +119,11 @@
 
                             <div class="mb-3">
                                 <input
-                                    required type="email" name="email" value="{{ old('email') }}"
-                                    id="email"
+                                    required
                                     type="email"
+                                    name="email"
+                                    id="email"
+                                    value="{{ old('email') }}"
                                     class="form-control"
                                     placeholder="Enter your Email Address"
                                 />

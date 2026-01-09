@@ -1,0 +1,6 @@
+Username:premium_account1 | Password:SecurePass123!
+Username:premium_account2 | Password:MyPassword456!
+Username:premium_account3 | Password:Account789Pass!
+Username:premium_account4 | Password:Demo2024Secure!
+Username:premium_account5 | Password:Test123Upload!
+

@@ -156,3 +156,4 @@ If you get a JSON response, it's working! If you get "Invalid or missing API key
 2. Ran `php artisan config:clear`
 3. API key in the header matches the one in `.env`
 
+
