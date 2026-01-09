@@ -103,7 +103,12 @@ class SocialLogin
         $adminNotification = new AdminNotification();
         $adminNotification->user_id = $newUser->id;
         $adminNotification->title = 'New member registered';
-        $adminNotification->click_url = urlPath('admin.users.detail', $newUser->id);
+        // Only generate URL if user ID exists and is valid
+        if ($newUser->id && $newUser->id > 0) {
+            $adminNotification->click_url = urlPath('admin.users.detail', $newUser->id);
+        } else {
+            $adminNotification->click_url = '#';
+        }
         $adminNotification->save();
 
         return $newUser;
