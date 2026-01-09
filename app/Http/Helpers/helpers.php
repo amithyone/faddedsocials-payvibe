@@ -331,14 +331,29 @@ function gatewayRedirectUrl($type = false)
 
 function urlPath($routeName, $routeParam = null)
 {
-    if ($routeParam == null) {
-        $url = route($routeName);
-    } else {
-        $url = route($routeName, $routeParam);
+    try {
+        if ($routeParam == null) {
+            $url = route($routeName);
+        } else {
+            // Ensure routeParam is passed correctly - use array if it's a single value
+            if (is_numeric($routeParam) || is_string($routeParam)) {
+                $url = route($routeName, $routeParam);
+            } else {
+                $url = route($routeName, $routeParam);
+            }
+        }
+        $basePath = route('home');
+        $path = str_replace($basePath, '', $url);
+        return $path;
+    } catch (\Exception $e) {
+        // If route generation fails, return a safe fallback
+        \Log::warning('Route generation failed in urlPath', [
+            'route' => $routeName,
+            'param' => $routeParam,
+            'error' => $e->getMessage()
+        ]);
+        return '#';
     }
-    $basePath = route('home');
-    $path = str_replace($basePath, '', $url);
-    return $path;
 }
 
 

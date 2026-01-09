@@ -158,7 +158,12 @@ class RegisterController extends Controller
         $adminNotification = new AdminNotification();
         $adminNotification->user_id = $user->id;
         $adminNotification->title = 'New member registered';
-        $adminNotification->click_url = urlPath('admin.users.detail', $user->id);
+        // Only generate URL if user ID exists and is valid
+        if ($user->id && $user->id > 0) {
+            $adminNotification->click_url = urlPath('admin.users.detail', $user->id);
+        } else {
+            $adminNotification->click_url = '#';
+        }
         $adminNotification->save();
 
 
