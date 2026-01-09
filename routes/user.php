@@ -63,7 +63,7 @@ Route::middleware('auth')->name('user.')->group(function () {
 
         Route::middleware('registration.complete')->namespace('User')->group(function () {
 
-            Route::controller(UserController::class)->group(function(){
+            Route::controller(\App\Http\Controllers\User\UserController::class)->group(function(){
                 Route::get('dashboard', 'home')->name('home');
 
                 //Report
