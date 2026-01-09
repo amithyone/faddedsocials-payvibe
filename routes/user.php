@@ -57,8 +57,8 @@ Route::middleware('auth')->name('user.')->group(function () {
 
     Route::middleware(['check.status'])->group(function () {
 
-        Route::get('user-data', 'User\UserController@userData')->name('data');
-        Route::post('user-data-submit', 'User\UserController@userDataSubmit')->name('data.submit');
+        Route::get('user-data', [UserController::class, 'userData'])->name('data');
+        Route::post('user-data-submit', [UserController::class, 'userDataSubmit'])->name('data.submit');
         Route::get('xtrapay/verify/{reference}', 'Gateway\Xtrapay\ProcessController@requery')->name('xtrapay.verify.app');
 
         Route::middleware('registration.complete')->namespace('User')->group(function () {
