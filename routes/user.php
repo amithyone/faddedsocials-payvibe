@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\User\UserController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,7 +63,7 @@ Route::middleware('auth')->name('user.')->group(function () {
 
         Route::middleware('registration.complete')->namespace('User')->group(function () {
 
-            Route::controller('UserController')->group(function(){
+            Route::controller(UserController::class)->group(function(){
                 Route::get('dashboard', 'home')->name('home');
 
                 //Report
