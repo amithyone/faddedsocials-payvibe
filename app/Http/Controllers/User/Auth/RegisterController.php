@@ -167,34 +167,42 @@ class RegisterController extends Controller
         $adminNotification->save();
 
 
-        //Login Log Create
-        $ip = getRealIP();
-        $exist = UserLogin::where('user_ip', $ip)->first();
-        $userLogin = new UserLogin();
+        //Login Log Create - Skip if disabled via environment variable
+        $logUserLogin = env('LOG_USER_LOGIN', 'true');
+        if (filter_var($logUserLogin, FILTER_VALIDATE_BOOLEAN)) {
+            try {
+                $ip = getRealIP();
+                $exist = UserLogin::where('user_ip', $ip)->first();
+                $userLogin = new UserLogin();
 
-        //Check exist or not
-        if ($exist) {
-            $userLogin->longitude =  $exist->longitude;
-            $userLogin->latitude =  $exist->latitude;
-            $userLogin->city =  $exist->city;
-            $userLogin->country_code = $exist->country_code;
-            $userLogin->country =  $exist->country;
-        } else {
-            $info = json_decode(json_encode(getIpInfo()), true);
-            $userLogin->longitude =  @implode(',', $info['long']);
-            $userLogin->latitude =  @implode(',', $info['lat']);
-            $userLogin->city =  @implode(',', $info['city']);
-            $userLogin->country_code = @implode(',', $info['code']);
-            $userLogin->country =  @implode(',', $info['country']);
+                //Check exist or not
+                if ($exist) {
+                    $userLogin->longitude =  $exist->longitude;
+                    $userLogin->latitude =  $exist->latitude;
+                    $userLogin->city =  $exist->city;
+                    $userLogin->country_code = $exist->country_code;
+                    $userLogin->country =  $exist->country;
+                } else {
+                    $info = json_decode(json_encode(getIpInfo()), true);
+                    $userLogin->longitude =  @implode(',', $info['long']);
+                    $userLogin->latitude =  @implode(',', $info['lat']);
+                    $userLogin->city =  @implode(',', $info['city']);
+                    $userLogin->country_code = @implode(',', $info['code']);
+                    $userLogin->country =  @implode(',', $info['country']);
+                }
+
+                $userAgent          = osBrowser();
+                $userLogin->user_id = $user->id;
+                $userLogin->user_ip = $ip;
+
+                $userLogin->browser = @$userAgent['browser'];
+                $userLogin->os      = @$userAgent['os_platform'];
+                $userLogin->save();
+            } catch (\Exception $e) {
+                // Silently fail if user_login table doesn't exist or has issues
+                // Registration should not be blocked by logging failures
+            }
         }
-
-        $userAgent          = osBrowser();
-        $userLogin->user_id = $user->id;
-        $userLogin->user_ip = $ip;
-
-        $userLogin->browser = @$userAgent['browser'];
-        $userLogin->os      = @$userAgent['os_platform'];
-        $userLogin->save();
 
 
         return $user;
