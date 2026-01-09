@@ -8,8 +8,8 @@ use App\Http\Controllers\Gateway\PayVibe\ProcessController as PayVibeController;
 
 
 
-Route::any('e-fund',  'User\UserController@e_fund')->name('e-fund');
-Route::any('e-check',  'User\UserController@e_check')->name('e-check');
+Route::any('e-fund',  [UserController::class, 'e_fund'])->name('e-fund');
+Route::any('e-check',  [UserController::class, 'e_check'])->name('e-check');
 
 // PayVibe Payment Gateway Routes
 Route::post('/ipn/payvibe', [PayVibeController::class, 'ipn']);
