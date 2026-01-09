@@ -111,10 +111,9 @@
                                             <input
                                                 type="text"
                                                 class="form-control"
-                                                id="floatingInput"
+                                                id="username"
                                                 placeholder="username / Email Address"
-                                                id="email" name="username" value="{{ old('username') }}"
-                                                placeholder="infoname@mail.com"
+                                                name="username" value="{{ old('username') }}"
                                             />
                                         </div>
 
@@ -123,7 +122,7 @@
                                             <input
                                                 type="password" name="password"
                                                 class="form-control"
-                                                id="floatingInput"
+                                                id="password"
                                                 placeholder="Enter your password"
                                             />
                                         </div>
