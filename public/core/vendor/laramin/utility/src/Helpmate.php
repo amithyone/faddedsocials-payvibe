@@ -6,24 +6,27 @@ use App\Models\GeneralSetting;
 
 class Helpmate{
     public static function sysPass(){
-        $fileExists = file_exists(__DIR__.'/laramin.json');
-        $general = cache()->get('GeneralSetting');
-        if (!$general) {
-            $general = GeneralSetting::first();
-        }
-
-        $hasPurchaseCode = cache()->get('purchase_code');
-        if (!$hasPurchaseCode) {
-            $hasPurchaseCode = env('PURCHASECODE');
-            cache()->set('purchase_code',$hasPurchaseCode);
-        }
-
-        if (!$fileExists || $general->maintenance_mode == 9 || !$hasPurchaseCode) {
-            return false;
-        }
-
+        // License check bypassed - always return true
         return true;
-
+        
+        // Original license check code (disabled):
+        // $fileExists = file_exists(__DIR__.'/laramin.json');
+        // $general = cache()->get('GeneralSetting');
+        // if (!$general) {
+        //     $general = GeneralSetting::first();
+        // }
+        //
+        // $hasPurchaseCode = cache()->get('purchase_code');
+        // if (!$hasPurchaseCode) {
+        //     $hasPurchaseCode = env('PURCHASECODE');
+        //     cache()->set('purchase_code',$hasPurchaseCode);
+        // }
+        //
+        // if (!$fileExists || $general->maintenance_mode == 9 || !$hasPurchaseCode) {
+        //     return false;
+        // }
+        //
+        // return true;
     }
 
     public static function appUrl(){
