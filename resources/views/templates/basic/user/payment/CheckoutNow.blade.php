@@ -37,21 +37,6 @@
                         </p>
                     </div>
 
-                    {{-- Important Instructions --}}
-                    <div class="mt-4">
-                        <div class="alert alert-warning" role="alert">
-                            <p><strong>@lang('Important Transfer Instructions'):</strong> 
-                                @lang('Please copy the transaction ID below and use it as the <b>narration</b> or <b>description</b> when making your transfer. Our customer support will need this reference if you report any issues about this transaction') 
-                            </p>
-                            <div class="d-flex align-items-center">
-                                <span class="value me-2" id="transactionId">{{ is_array($data->val) ? ($data->val['transaction_id'] ?? 'N/A') : ($data->val->transaction_id ?? 'N/A') }}</span>
-                                <button class="btn btn-sm copy-btn" onclick="copyToClipboard('transactionId')">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- Account Details - Visible on Main Page --}}
                     <div class="border rounded p-4 mt-4">
                         <div class="row">
@@ -119,9 +104,6 @@
                     <div class="alert alert-warning mt-3" role="alert">
                         <ul class="mb-0">
                             <li>@lang('Please transfer the exact amount to avoid payment issues')</li>
-                            <li>@lang('Use the transaction ID as narration to help us track your payment')</li>
-                            <li>@lang('Your account will be credited automatically after successful transfer')</li>
-                            <li>@lang('This account is valid for this transaction only')</li>
                         </ul>
                     </div>
 
@@ -186,7 +168,6 @@
                         <li>@lang('Select "Transfer" or "Send Money"')</li>
                         <li>@lang('Enter the account number above')</li>
                         <li>@lang('Enter the exact amount')</li>
-                        <li>@lang('Use the transaction ID as narration/description')</li>
                         <li>@lang('Complete the transfer')</li>
                     </ol>
                 </div>
@@ -196,9 +177,6 @@
                     <h6><i class="fas fa-exclamation-triangle me-2"></i>@lang('Important Notes'):</h6>
                     <ul class="mb-0">
                         <li>@lang('Transfer the exact amount to avoid issues')</li>
-                        <li>@lang('Use the transaction ID as narration for tracking')</li>
-                        <li>@lang('Your account will be credited automatically')</li>
-                        <li>@lang('This account is valid for this transaction only')</li>
                     </ul>
                 </div>
             </div>
