@@ -40,5 +40,8 @@ Route::post('payaza', 'Payaza\ProcessController@ipn')->name('Payaza');
 Route::post('payvibe', 'PayVibe\ProcessController@ipn')->name('PayVibe');
 Route::get('payvibe/requery/{reference}', 'PayVibe\ProcessController@checkTransaction')->name('PayVibeRequery');
 
+Route::post('checkoutnow', 'CheckoutNow\ProcessController@ipn')->name('CheckoutNow');
+Route::get('checkoutnow/requery/{transactionId}', 'CheckoutNow\ProcessController@checkTransaction')->name('CheckoutNowRequery');
+
 
 

@@ -37,4 +37,10 @@ return [
         'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'socails'),
     ],
 
+    'checkoutnow' => [
+        'base_url' => env('CHECKOUTNOW_BASE_URL', 'https://check-outpay.com/api/v1'),
+        'api_key' => env('CHECKOUTNOW_API_KEY'),
+        'webhook_url' => env('CHECKOUTNOW_WEBHOOK_URL', env('APP_URL') . '/ipn/checkoutnow'),
+    ],
+
 ];

@@ -241,6 +241,11 @@ class WebhookService
         // Determine payment method and send appropriate webhook
         $paymentMethod = $deposit->gateway->code ?? '';
         
+        if ($paymentMethod == 121) {
+            // CheckoutNow - no external webhook needed, handled internally
+            return true;
+        }
+        
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
             return self::sendToPayVibe($deposit, $user, 'failed');
         }
@@ -265,6 +270,11 @@ class WebhookService
         // Determine payment method and send appropriate webhook
         $paymentMethod = $deposit->gateway->code ?? '';
         
+        if ($paymentMethod == 121) {
+            // CheckoutNow - no external webhook needed, handled internally
+            return true;
+        }
+        
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
             return self::sendToPayVibe($deposit, $user, 'pending');
         }
@@ -283,6 +293,11 @@ class WebhookService
         // Only send instant payment methods to webhooks (exclude manual payments)
         if ($paymentMethod == 1000) {
             // Manual payments - no webhook needed
+            return true;
+        }
+        
+        if ($paymentMethod == 121) {
+            // CheckoutNow - no external webhook needed, handled internally
             return true;
         }
         

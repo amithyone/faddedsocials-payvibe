@@ -67,6 +67,9 @@ class PaymentController extends Controller
         $percentageCharge = $request->amount * 0.015; // 1.5% of the amount
         $charge = $fixedCharge + $percentageCharge; // Total charge for manual payments
     }
+} elseif ($gate->method_code == 121) {
+    // CheckoutNow: Use gateway's own charges (50 NGN fixed + 1.0%)
+    $charge = $gate->fixed_charge + (round($request->amount, 2) * ($gate->percent_charge / 100));
 } else {
     // Calculate charges for other gateways based on the funding amount
     if ($request->amount < 5000) {
@@ -95,6 +98,12 @@ class PaymentController extends Controller
             $data->btc_amo = 0;
             $data->btc_wallet = "";
             $data->trx = getTrx();
+            
+            // Store payer name for CheckoutNow if provided
+            if ($request->payer_name && $gate->method_code == 121) {
+                $data->detail = ['payer_name' => $request->payer_name];
+            }
+            
             $data->save();
 
             // Send webhook if gateway is Xtrapay or PayVibe

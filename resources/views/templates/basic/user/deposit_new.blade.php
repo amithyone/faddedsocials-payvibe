@@ -51,11 +51,26 @@
 
                         <div class="p-3">
                             <div class="card-body">
+                                <label for="payer_name" class="form-label">Your Name (as it appears on your bank account)</label>
+                                <input type="text" name="payer_name" id="payer_name" class="form-control" placeholder="Enter your full name" aria-describedby="payer_name-help">
+                                <div id="payer_name-help" class="form-text">Required for CheckoutNow. Use the exact name on your bank account.</div>
+                            </div>
+                        </div>
+
+                        <div class="p-3">
+                            <div class="card-body">
                                 <label for="gateway" class="form-label">Select Payment Gateway</label>
                                 <select name="gateway" id="gateway" class="form-control" required aria-describedby="gateway-help">
                                     <option value="">Select Payment Method</option>
                                     @foreach ($gateway_currency as $data)
                                         @if($data->method_code == 120)
+                                            <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
+                                                {{ $data->name }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                    @foreach ($gateway_currency as $data)
+                                        @if($data->method_code == 121)
                                             <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
                                                 {{ $data->name }}
                                             </option>
@@ -148,14 +163,29 @@
                                         paymentMethod = 'xtrapay';
                                     } else if (methodCode == '120') {
                                         paymentMethod = 'payvibe';
+                                    } else if (methodCode == '121') {
+                                        paymentMethod = 'checkoutnow';
+                                        // Show payer name field for CheckoutNow
+                                        $('#payer_name').closest('.card-body').show();
+                                        $('#payer_name').prop('required', true);
                                     } else if (methodCode == '1000') {
                                         paymentMethod = 'manual';
+                                        // Hide payer name field for manual
+                                        $('#payer_name').closest('.card-body').hide();
+                                        $('#payer_name').prop('required', false);
+                                    } else {
+                                        // Hide payer name field for other gateways
+                                        $('#payer_name').closest('.card-body').hide();
+                                        $('#payer_name').prop('required', false);
                                     }
                                     
                                     $('#payment_method').val(paymentMethod);
                                     var selectedOption = $(this).find('option:selected');
                                     $('input[name=currency]').val(selectedOption.data('currency'));
                                 });
+                                
+                                // Initially hide payer name field
+                                $('#payer_name').closest('.card-body').hide();
 
                                 // Monitor amount input
                                 $('input[name="amount"]').on('input', function() {
