@@ -14,13 +14,15 @@ class AutomaticGatewayController extends Controller
     public function index()
     {
         $pageTitle = 'Automatic Gateways';
-        $gateways = Gateway::automatic()->with('currencies')->get();
+        // Exclude CheckoutNow (121) and XtraPay (118) from admin panel - they are managed separately
+        $gateways = Gateway::automatic()->whereNotIn('code', [118, 121])->with('currencies')->get();
         return view('admin.gateways.automatic.list', compact('pageTitle', 'gateways'));
     }
 
     public function edit($alias)
     {
-        $gateway = Gateway::automatic()->with('currencies','currencies.method')->where('alias', $alias)->firstOrFail();
+        // Prevent editing CheckoutNow (121) and XtraPay (118) from admin panel
+        $gateway = Gateway::automatic()->whereNotIn('code', [118, 121])->with('currencies','currencies.method')->where('alias', $alias)->firstOrFail();
         $pageTitle = 'Update Gateway';
 
         $supportedCurrencies = collect($gateway->supported_currencies)->except($gateway->currencies->pluck('currency'));
