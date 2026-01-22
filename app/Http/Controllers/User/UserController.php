@@ -275,11 +275,20 @@ class UserController extends Controller
     {
         $pageTitle = 'Fund Wallet';
         // Get enabled gateway currencies where both currency and gateway are enabled
+        // Filter to only show: PayVibe (120), CheckoutNow (121), XtraPay (118), Manual (1000)
         $gateway_currency = GatewayCurrency::where('status', 1)
+            ->whereIn('method_code', ['118', '120', '121', '1000']) // Use strings since Gateway code is cast as string
             ->whereHas('method', function ($query) {
                 $query->where('status', Status::ENABLE);
             })
             ->get();
+        
+        // Debug: Log what gateways are found (remove in production)
+        // \Log::info('Available gateways for deposit', [
+        //     'count' => $gateway_currency->count(),
+        //     'gateways' => $gateway_currency->pluck('method_code', 'name')->toArray()
+        // ]);
+        
         $deposits = Deposit::latest()->where('user_id', Auth::id())->with('gateway', 'order')->paginate('5');
         return view($this->activeTemplate . 'user.deposit_new', compact('pageTitle', 'gateway_currency', 'deposits'));
     }

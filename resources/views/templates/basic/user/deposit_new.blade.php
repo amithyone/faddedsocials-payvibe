@@ -70,7 +70,7 @@
                                         @endif
                                     @endforeach
                                     @foreach ($gateway_currency as $data)
-                                        @if($data->method_code == 121)
+                                        @if($data->method_code == 121 || $data->method_code == '121')
                                             <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
                                                 {{ $data->name }}
                                             </option>
