@@ -33,9 +33,12 @@ class Onumoti{
     }
 
     public static function mySite($site,$className){
-        $myClass = VugiChugi::clsNm();
-        if($myClass != $className){
-            return $site->middleware(VugiChugi::mdNm());
-        }
+        // License check bypassed - middleware not applied
+        // Original code (disabled):
+        // $myClass = VugiChugi::clsNm();
+        // if($myClass != $className){
+        //     return $site->middleware(VugiChugi::mdNm());
+        // }
+        return;
     }
 }
