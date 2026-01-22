@@ -59,6 +59,7 @@ class CheckoutNowGatewaySeeder extends Seeder
                 'percent_charge' => 1.0,
                 'fixed_charge' => 50,
                 'rate' => 1,
+                'status' => 1, // Enable the gateway currency
                 'gateway_parameter' => json_encode([
                     'api_key' => env('CHECKOUTNOW_API_KEY', '')
                 ]),
@@ -68,7 +69,15 @@ class CheckoutNowGatewaySeeder extends Seeder
             
             $this->command->info('CheckoutNow currency configuration created successfully.');
         } else {
-            $this->command->warn('CheckoutNow currency already exists. Skipping currency creation.');
+            // Update existing currency to ensure status is enabled
+            DB::table('gateway_currencies')
+                ->where('method_code', 121)
+                ->update([
+                    'status' => 1,
+                    'updated_at' => now()
+                ]);
+            
+            $this->command->warn('CheckoutNow currency already exists. Updated status to enabled.');
         }
         
         $this->command->info('CheckoutNow gateway seeder completed!');
