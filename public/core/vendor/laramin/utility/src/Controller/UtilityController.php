@@ -12,8 +12,12 @@ class UtilityController extends Controller{
 
     public function laraminStart()
     {
-        $pageTitle = VugiChugi::lsTitle();
-        return view('Utility::laramin_start',compact('pageTitle'));
+        // License activation bypassed - redirect to home
+        return redirect('/');
+        
+        // Original code (disabled):
+        // $pageTitle = VugiChugi::lsTitle();
+        // return view('Utility::laramin_start',compact('pageTitle'));
     }
 
     public function laraminSubmit(Request $request){
