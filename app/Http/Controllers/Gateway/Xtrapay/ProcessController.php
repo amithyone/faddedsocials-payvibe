@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Services\WebhookService;
 
@@ -99,11 +100,22 @@ class ProcessController extends Controller
     
     public function ipn(Request $request)
     {
+        // Log incoming webhook for debugging
+        Log::info('Xtrapay IPN received', [
+            'headers' => $request->headers->all(),
+            'body' => $request->getContent(),
+            'json' => $request->json()->all(),
+            'all' => $request->all()
+        ]);
+
         // Retrieve JSON payload
         $payload = $request->json()->all();
     
         // Ensure required fields exist
         if (!isset($payload['data']) || !isset($payload['hash'])) {
+            Log::error('Xtrapay IPN: Missing required fields', [
+                'payload' => $payload
+            ]);
             return response()->json(['error' => 'Invalid request'], 400);
         }
     
@@ -114,8 +126,12 @@ class ProcessController extends Controller
         $computedHash = hash_hmac('sha256', json_encode($payload['data']), $accessKey);
     
         // Verify hash
-        
         if (!hash_equals($computedHash, $payload['hash'])) {
+            Log::warning('Xtrapay IPN: Hash verification failed', [
+                'reference' => $payload['data']['reference'] ?? null,
+                'expected_hash' => substr($computedHash, 0, 20) . '...',
+                'received_hash' => substr($payload['hash'], 0, 20) . '...'
+            ]);
             return $this->updateDepositInfo($payload['data']['reference'] ?? null, 'Invalid Authentication');
         }
     
@@ -124,11 +140,23 @@ class ProcessController extends Controller
         $reference = $data['reference'] ?? null;
         $amountReceived = $data['amount'] ?? 0;
         $status = strtolower($data['status'] ?? 'pending'); // Normalize status
+        
+        Log::info('Xtrapay IPN: Processing transaction', [
+            'reference' => $reference,
+            'status' => $status,
+            'amount_received' => $amountReceived,
+            'data' => $data
+        ]);
     
         // Define valid statuses
         $validStatuses = ['pending', 'successful', 'failed', 'reversed'];
     
         if (!in_array($status, $validStatuses)) {
+            Log::warning('Xtrapay IPN: Invalid status', [
+                'reference' => $reference,
+                'status' => $status,
+                'valid_statuses' => $validStatuses
+            ]);
             return $this->updateDepositInfo($reference, "Invalid status received: {$status}");
         }
     
@@ -136,15 +164,34 @@ class ProcessController extends Controller
         $deposit = Deposit::where('trx', $reference)->lockForUpdate()->first();
     
         if (!$deposit) {
+            Log::error('Xtrapay IPN: Deposit not found', [
+                'reference' => $reference
+            ]);
             return $this->updateDepositInfo($reference, 'Deposit not found');
         }
         
+        Log::info('Xtrapay IPN: Deposit found', [
+            'deposit_id' => $deposit->id,
+            'current_status' => $deposit->status,
+            'expected_status' => $status,
+            'amount' => $deposit->amount,
+            'final_amo' => $deposit->final_amo
+        ]);
+        
         if($deposit->status == 3){
+            Log::info('Xtrapay IPN: Transaction already rejected', [
+                'deposit_id' => $deposit->id,
+                'reference' => $reference
+            ]);
             return response()->json(['message' => 'Transaction already rejected'], 200);
         }
         
         // Prevent multiple processing of successful transactions
         if ($deposit->status == 1 && $status == 'successful') {
+            Log::info('Xtrapay IPN: Transaction already processed', [
+                'deposit_id' => $deposit->id,
+                'reference' => $reference
+            ]);
             return response()->json(['message' => 'Transaction already processed'], 200);
         }
         $mismatch = false;
@@ -166,12 +213,34 @@ class ProcessController extends Controller
     
         try {
             if ($status === 'successful') {
+                Log::info('Xtrapay IPN: Processing successful transaction', [
+                    'deposit_id' => $deposit->id,
+                    'reference' => $reference,
+                    'amount_to_credit' => $deposit->amount,
+                    'user_id' => $deposit->user_id
+                ]);
+                
                 // Lock user record to prevent race conditions
                 $user = User::where('id', $deposit->user_id)->lockForUpdate()->first();
     
                 if ($user) {
+                    $balanceBefore = $user->balance;
                     // Update user balance - credit the deposit amount to user's balance
                     $user->increment('balance', $deposit->amount);
+                    $balanceAfter = $user->fresh()->balance;
+                    
+                    Log::info('Xtrapay IPN: User balance credited', [
+                        'deposit_id' => $deposit->id,
+                        'user_id' => $user->id,
+                        'amount_credited' => $deposit->amount,
+                        'balance_before' => $balanceBefore,
+                        'balance_after' => $balanceAfter
+                    ]);
+                } else {
+                    Log::error('Xtrapay IPN: User not found', [
+                        'deposit_id' => $deposit->id,
+                        'user_id' => $deposit->user_id
+                    ]);
                 }
     
                 // Mark deposit as successful
@@ -185,6 +254,11 @@ class ProcessController extends Controller
                     $deposit->load('gateway');
                 }
                 
+                Log::info('Xtrapay IPN: Sending webhooks', [
+                    'deposit_id' => $deposit->id,
+                    'status' => $deposit->status
+                ]);
+                
                 // Send webhook for successful transaction
                 WebhookService::sendSuccessfulTransaction($deposit, $user);
                 
@@ -194,6 +268,11 @@ class ProcessController extends Controller
                 if(!$mismatch){
                     $this->updateDepositInfo($reference, 'Transaction successful', $data);
                 }
+                
+                Log::info('Xtrapay IPN: Successfully processed and credited', [
+                    'deposit_id' => $deposit->id,
+                    'reference' => $reference
+                ]);
                 
     
             } elseif ($status === 'failed' || $status === 'reversed') {
@@ -210,10 +289,22 @@ class ProcessController extends Controller
             // Commit transaction
             DB::commit();
     
+            Log::info('Xtrapay IPN: Transaction committed successfully', [
+                'reference' => $reference,
+                'status' => $status
+            ]);
+    
             return response()->json(['message' => 'Transaction Processed successfully'], 200);
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
+            
+            Log::error('Xtrapay IPN: Database error', [
+                'reference' => $reference,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return $this->updateDepositInfo($reference, 'Database error: ' . $e->getMessage());
         }
     }
