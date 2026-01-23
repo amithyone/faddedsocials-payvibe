@@ -69,38 +69,62 @@ class WebhookService
                 $action = 'updated';
             }
 
-            // Prepare the webhook payload
+            // Prepare metadata according to XtrapayBusiness format
+            $metadata = [];
+            if ($normalizedStatus === 'pending') {
+                // For pending transactions: event = "transaction_created"
+                $metadata = [
+                    'event' => 'transaction_created',
+                    'created_at' => $deposit->created_at ? $deposit->created_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s')
+                ];
+            } elseif ($normalizedStatus === 'success') {
+                // For successful transactions: event = "xtrapay_notification" (or payment_method specific)
+                $eventName = $paymentMethod === 'checkoutnow' ? 'checkoutnow_notification' : 
+                            ($paymentMethod === 'payvibe' ? 'payvibe_notification' : 'xtrapay_notification');
+                $metadata = [
+                    'event' => $eventName,
+                    'notification_received_at' => now()->format('Y-m-d H:i:s')
+                ];
+                
+                // Add payment method specific reference if available
+                if ($paymentMethod === 'checkoutnow' && isset($deposit->detail['transaction_id'])) {
+                    $metadata['checkoutnow_reference'] = $deposit->detail['transaction_id'];
+                } elseif ($paymentMethod === 'xtrapay' && isset($deposit->detail['reference'])) {
+                    $metadata['xtrapay_reference'] = $deposit->detail['reference'];
+                }
+            } else {
+                // For failed/rejected
+                $metadata = [
+                    'event' => 'transaction_failed',
+                    'failed_at' => now()->format('Y-m-d H:i:s')
+                ];
+            }
+            
+            // Add additional metadata for tracking (XtrapayBusiness may ignore these but they're useful for logs)
+            $metadata['deposit_id'] = $deposit->id;
+            $metadata['user_id'] = $user->id;
+            $metadata['total_paid'] = $totalPaid;
+            $metadata['charges'] = $charges;
+
+            // Prepare the webhook payload according to XtrapayBusiness format
             $payload = [
                 'site_api_code' => $apiCode,
                 'reference' => $deposit->trx,
                 'amount' => $creditedAmount, // Amount credited to user
-                'total_paid' => $totalPaid, // Total amount paid by user
-                'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => $normalizedStatus,
-                'action' => $action, // 'created' for new transactions, 'updated' for status changes
                 'payment_method' => $paymentMethod,
                 'customer_email' => $user->email,
-                'customer_name' => $user->firstname . ' ' . $user->lastname,
+                'customer_name' => trim($user->firstname . ' ' . $user->lastname),
                 'description' => $description,
-                'external_id' => (string) $deposit->id,
-                'metadata' => [
-                    'deposit_id' => $deposit->id,
-                    'user_id' => $user->id,
-                    'credited_amount' => $creditedAmount, // Amount credited to user balance
-                    'total_paid' => $totalPaid, // Total amount paid
-                    'charges' => $charges, // Transaction charges
-                    'final_amount' => $deposit->final_amo ?? null,
-                    'charge' => $deposit->charge ?? null,
-                    'payment_reference' => $deposit->trx,
-                    'site_name' => 'faddedsocials.com',
-                    'site_url' => 'https://faddedsocials.com',
-                    'user_balance_before' => $user->balance - $creditedAmount, // User balance before credit
-                    'user_balance_after' => $user->balance, // User balance after credit
-                    'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'socials')
-                ],
+                'metadata' => $metadata,
                 'timestamp' => $deposit->created_at ? $deposit->created_at->toISOString() : now()->toISOString()
             ];
+            
+            // Add external_id only for successful transactions (as per XtrapayBusiness spec)
+            if ($normalizedStatus === 'success') {
+                $payload['external_id'] = (string) $deposit->id;
+            }
 
             // Send webhook
             $response = Http::withHeaders([
@@ -395,39 +419,41 @@ class WebhookService
                 $paymentMethod = 'manual';
             }
 
-            // Prepare the webhook payload specifically for credited amount
+            // Prepare metadata for credited amount webhook (success notification)
+            $eventName = $paymentMethod === 'checkoutnow' ? 'checkoutnow_notification' : 
+                        ($paymentMethod === 'payvibe' ? 'payvibe_notification' : 'xtrapay_notification');
+            
+            $metadata = [
+                'event' => $eventName,
+                'notification_received_at' => now()->format('Y-m-d H:i:s')
+            ];
+            
+            // Add payment method specific reference if available
+            if ($paymentMethod === 'checkoutnow' && isset($deposit->detail['transaction_id'])) {
+                $metadata['checkoutnow_reference'] = $deposit->detail['transaction_id'];
+            } elseif ($paymentMethod === 'xtrapay' && isset($deposit->detail['reference'])) {
+                $metadata['xtrapay_reference'] = $deposit->detail['reference'];
+            }
+            
+            // Add additional tracking data
+            $metadata['deposit_id'] = $deposit->id;
+            $metadata['credited_amount'] = $creditedAmount;
+            $metadata['total_paid'] = $totalPaid;
+            $metadata['charges'] = $charges;
+
+            // Prepare the webhook payload according to XtrapayBusiness format
             $payload = [
                 'site_api_code' => $apiCode,
                 'reference' => $deposit->trx,
-                'amount' => $creditedAmount, // Amount credited to user (required field)
-                'credited_amount' => $creditedAmount, // Amount credited to user
-                'total_paid' => $totalPaid, // Total amount paid by user
-                'charges' => $charges, // Transaction charges
+                'amount' => $creditedAmount, // Amount credited to user
                 'currency' => 'NGN',
-                'status' => 'success', // Use 'success' instead of 'credited'
-                'action' => 'updated', // Always 'updated' for credited amount webhook
+                'status' => 'success',
                 'payment_method' => $paymentMethod,
                 'customer_email' => $user->email,
-                'customer_name' => $user->firstname . ' ' . $user->lastname,
+                'customer_name' => trim($user->firstname . ' ' . $user->lastname),
                 'description' => 'Amount credited to user balance',
                 'external_id' => (string) $deposit->id,
-                'metadata' => [
-                    'deposit_id' => $deposit->id,
-                    'user_id' => $user->id,
-                    'credited_amount' => $creditedAmount, // Amount credited to user balance
-                    'total_paid' => $totalPaid, // Total amount paid
-                    'charges' => $charges, // Transaction charges
-                    'final_amount' => $deposit->final_amo ?? null,
-                    'charge' => $deposit->charge ?? null,
-                    'payment_reference' => $deposit->trx,
-                    'site_name' => 'faddedsocials.com',
-                    'site_url' => 'https://faddedsocials.com',
-                    'user_balance_before' => $user->balance - $creditedAmount, // User balance before credit
-                    'user_balance_after' => $user->balance, // User balance after credit
-                    'credit_timestamp' => now()->toISOString(),
-                    'transaction_type' => 'credit',
-                    'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'socials')
-                ],
+                'metadata' => $metadata,
                 'timestamp' => $deposit->created_at ? $deposit->created_at->toISOString() : now()->toISOString()
             ];
 
