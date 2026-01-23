@@ -13,7 +13,13 @@ class RedirectIfAuthenticated
     {
 
         if (Auth::guard($guard)->check()) {
-            return to_route('user.home');
+            // Try to use route name, fallback to direct URL if route doesn't exist
+            try {
+                return redirect()->route('user.home');
+            } catch (\Exception $e) {
+                // Fallback to direct URL if route name doesn't exist
+                return redirect('/user/dashboard');
+            }
         }
 
         return $next($request);
