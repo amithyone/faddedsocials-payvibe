@@ -29,8 +29,6 @@ Route::get('verify', 'Gateway\Enkpay\ProcessController@ipn')->name('enkpay');
 
 Route::any('change-password', [SiteController::class, 'chnage_password']);
 
-Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
-
 // User Support Ticket
 Route::controller('TicketController')->prefix('ticket')->name('ticket.')->group(function () {
     Route::get('/', 'supportTicket')->name('index');
