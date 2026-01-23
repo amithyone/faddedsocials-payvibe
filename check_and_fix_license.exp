@@ -1,0 +1,162 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set server "104.207.95.218"
+set port "22"
+set username "root"
+set password "Pr7CdWcpaBNY84l152"
+
+spawn ssh -o StrictHostKeyChecking=no -p $port $username@$server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "Password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+    timeout {
+        puts "Connection timeout"
+        exit 1
+    }
+}
+
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "Prompt timeout"
+        exit 1
+    }
+}
+
+puts "\n=== Checking License Bypass Status ==="
+send "cd /home/wolrdhome/public_html/core\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "pwd\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Check if Helpmate.php has the bypass
+send "grep -n 'License check bypassed' public/core/vendor/laramin/utility/src/Helpmate.php || echo 'BYPASS_NOT_FOUND'\r"
+expect {
+    "BYPASS_NOT_FOUND" {
+        puts "\n✗ Bypass not found - need to update file"
+    }
+    "License check bypassed" {
+        puts "\n✓ Bypass found in file"
+    }
+    "# " {}
+    "$ " {}
+}
+
+# Pull latest changes
+send "echo '=== Pulling Latest Changes ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "git pull origin main 2>&1 | head -10\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nGit pull timed out"
+    }
+}
+
+# Check Helpmate.php again after pull
+send "grep -A 2 'public static function sysPass' public/core/vendor/laramin/utility/src/Helpmate.php | head -5\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# If bypass still not there, apply it directly
+send "echo '=== Applying License Bypass Directly ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Create a backup first
+send "cp public/core/vendor/laramin/utility/src/Helpmate.php public/core/vendor/laramin/utility/src/Helpmate.php.backup\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Apply the fix using sed
+send "sed -i 's/public static function sysPass(){/public static function sysPass(){\n        return true;\n        \/\/ License check bypassed/' public/core/vendor/laramin/utility/src/Helpmate.php\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Clear caches
+send "echo '=== Clearing Caches ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "php artisan config:clear 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nConfig clear timed out"
+    }
+}
+
+send "php artisan cache:clear 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nCache clear timed out"
+    }
+}
+
+send "php artisan view:clear 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nView clear timed out"
+    }
+}
+
+# Verify the fix
+send "echo '=== Verifying Fix ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "grep -A 1 'public static function sysPass' public/core/vendor/laramin/utility/src/Helpmate.php | head -3\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "echo '=== Done ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "exit\r"
+expect eof

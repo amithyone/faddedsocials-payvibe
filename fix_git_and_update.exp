@@ -1,0 +1,172 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set server "104.207.95.218"
+set port "22"
+set username "root"
+set password "Pr7CdWcpaBNY84l152"
+
+spawn ssh -o StrictHostKeyChecking=no -p $port $username@$server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "Password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+    timeout {
+        puts "Connection timeout"
+        exit 1
+    }
+}
+
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "Prompt timeout"
+        exit 1
+    }
+}
+
+puts "\n=== Fixing Git Permissions ==="
+send "cd /home/wolrdhome/public_html/core\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Fix git directory permissions
+send "echo '=== Fixing .git directory permissions ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "chmod -R u+w .git 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "find .git -type f -exec chmod 644 {} \\; 2>&1 | head -1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "find .git -type d -exec chmod 755 {} \\; 2>&1 | head -1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Fix FETCH_HEAD specifically
+send "chmod 644 .git/FETCH_HEAD 2>&1 || echo 'FETCH_HEAD not found or already fixed'\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Check ownership
+send "ls -la .git/FETCH_HEAD 2>&1 | head -1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Try git pull now
+send "echo '=== Pulling Latest Changes ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "git pull origin main 2>&1\r"
+expect {
+    "error:" {
+        puts "\n⚠ Git pull encountered an error"
+    }
+    "Already up to date" {
+        puts "\n✓ Repository is up to date"
+    }
+    "Updating" {
+        puts "\n✓ Git pull successful"
+    }
+    "Permission denied" {
+        puts "\n✗ Still has permission issues"
+        send "chown -R wolrdhome:wolrdhome .git 2>&1 || echo 'chown failed - may need different approach'\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "chmod -R 755 .git 2>&1\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "git pull origin main 2>&1\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+    }
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nGit pull timed out"
+    }
+}
+
+# Clear view cache
+send "echo '=== Clearing View Cache ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "php artisan view:clear 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nView clear timed out"
+    }
+}
+
+# Verify the changes
+send "echo '=== Verifying Changes ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "grep -c 'Important Transfer Instructions' resources/views/templates/basic/user/payment/CheckoutNow.blade.php 2>&1 || echo '0'\r"
+expect {
+    "0" {
+        puts "\n✓ Irrelevant instructions removed successfully"
+    }
+    "# " {}
+    "$ " {}
+}
+
+send "echo '=== Summary ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "echo 'Git permissions fixed, changes pulled, and view cache cleared.'\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "exit\r"
+expect eof

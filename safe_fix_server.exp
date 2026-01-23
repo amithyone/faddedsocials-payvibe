@@ -1,0 +1,226 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set server "104.207.95.218"
+set port "22"
+set username "root"
+set password "Pr7CdWcpaBNY84l152"
+
+# Spawn SSH connection
+spawn ssh -o StrictHostKeyChecking=no -p $port $username@$server
+
+# Handle password prompt
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "Password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+# Wait for shell prompt
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "Connection timeout"
+        exit 1
+    }
+}
+
+# Navigate to core directory
+send "cd /home/wolrdhome/public_html/core\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+puts "\n=== Checking Current Status ==="
+send "pwd\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Check if config directory exists
+send "test -d config && echo 'CONFIG_EXISTS' || echo 'CONFIG_MISSING'\r"
+expect {
+    "CONFIG_EXISTS" {
+        puts "\n✓ Config directory exists"
+        send "ls -la config/ | head -5\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+    }
+    "CONFIG_MISSING" {
+        puts "\n✗ Config directory is MISSING"
+    }
+    "# " {}
+    "$ " {}
+}
+
+# Check git status
+send "echo '=== Checking Git Status ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "git status --short | head -10\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# If config is missing, restore it from git (safely - only adds missing files)
+send "echo '=== Restoring Missing Config Directory ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "test -d config || git checkout HEAD -- config/ 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nGit checkout timed out"
+    }
+}
+
+# Verify config was restored
+send "test -d config && echo 'CONFIG_RESTORED' || echo 'CONFIG_STILL_MISSING'\r"
+expect {
+    "CONFIG_RESTORED" {
+        puts "\n✓ Config directory restored"
+    }
+    "CONFIG_STILL_MISSING" {
+        puts "\n✗ Config directory still missing - may need manual intervention"
+    }
+    "# " {}
+    "$ " {}
+}
+
+# Fix git permissions (safe - only changes permissions, doesn't delete)
+send "echo '=== Fixing Git Permissions ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "chmod -R u+w .git 2>&1 || echo 'Permission fix attempted'\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Check all critical directories
+send "echo '=== Checking All Critical Directories ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "for dir in app bootstrap routes database resources config vendor; do test -d \"\$dir\" && echo \"OK: \$dir/\" || echo \"MISSING: \$dir/\"; done\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Try git pull (safe - only updates, doesn't delete)
+send "echo '=== Attempting Safe Git Pull ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "git pull origin main 2>&1\r"
+expect {
+    "error:" {
+        puts "\n⚠ Git pull encountered an error (may be permission issue)"
+    }
+    "Already up to date" {
+        puts "\n✓ Repository is up to date"
+    }
+    "Updating" {
+        puts "\n✓ Git pull successful"
+    }
+    "CONFIG_RESTORED" {}
+    "CONFIG_STILL_MISSING" {}
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nGit pull timed out"
+    }
+}
+
+# Clear caches (safe operation)
+send "echo '=== Clearing Laravel Caches ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "php artisan optimize:clear 2>&1 | head -10\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nCache clear timed out"
+    }
+}
+
+send "composer dump-autoload --ignore-platform-reqs 2>&1 | tail -5\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nComposer dump timed out"
+    }
+}
+
+# Final verification
+send "echo '=== Final Verification ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "test -d config && test -f config/app.php && echo 'SUCCESS: Config directory and app.php exist' || echo 'WARNING: Config may still be missing'\r"
+expect {
+    "SUCCESS" {
+        puts "\n✓ SUCCESS: Application should be working now"
+    }
+    "WARNING" {
+        puts "\n⚠ WARNING: Config directory may still need attention"
+    }
+    "# " {}
+    "$ " {}
+}
+
+# Show final status
+send "echo '=== Summary ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "ls -ld config app bootstrap routes 2>&1 | head -4\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+puts "\n=== All operations completed safely ==="
+puts "No files were deleted - only restored missing files and fixed permissions"
+
+# Exit
+send "exit\r"
+expect eof

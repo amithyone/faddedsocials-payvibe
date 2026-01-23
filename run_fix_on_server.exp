@@ -1,0 +1,109 @@
+#!/usr/bin/expect -f
+
+set timeout 120
+set server "104.207.95.218"
+set port "22"
+set username "root"
+set password "Pr7CdWcpaBNY84l152"
+
+# Spawn SSH connection
+spawn ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p $port $username@$server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "Password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+    timeout {
+        puts "Connection timeout"
+        exit 1
+    }
+}
+
+# Wait for prompt
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "Prompt timeout"
+        exit 1
+    }
+}
+
+# Upload and run the fix script
+puts "\n=== Uploading fix script ==="
+send "cat > /tmp/fix_server.sh << 'EOFFIX'\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Read the script content and send it
+set script_content {
+#!/bin/bash
+cd /home/wolrdhome/public_html/core || exit 1
+echo "=== Checking Config Directory ==="
+if [ -d "config" ]; then
+    echo "✓ Config exists"
+    ls config/ | head -3
+else
+    echo "✗ Config MISSING - restoring..."
+    git checkout HEAD -- config/ 2>&1
+    [ -d "config" ] && echo "✓ Restored" || echo "✗ Restore failed"
+fi
+echo ""
+echo "=== Fixing Git Permissions ==="
+chmod -R u+w .git 2>/dev/null
+echo "✓ Permissions fixed"
+echo ""
+echo "=== Git Pull ==="
+git pull origin main 2>&1 | head -5
+echo ""
+echo "=== Clearing Caches ==="
+php artisan optimize:clear 2>&1 | grep -E "DONE|Cleared" | head -5
+composer dump-autoload --ignore-platform-reqs 2>&1 | tail -2
+echo ""
+echo "=== Final Check ==="
+[ -d "config" ] && [ -f "config/app.php" ] && echo "✓ SUCCESS: Config restored" || echo "⚠ Config may still be missing"
+}
+
+send "$script_content\r"
+send "EOFFIX\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+puts "\n=== Running fix script ==="
+send "chmod +x /tmp/fix_server.sh && /tmp/fix_server.sh\r"
+
+expect {
+    "SUCCESS" {
+        puts "\n✓ Script completed successfully"
+    }
+    "MISSING" {
+        puts "\n⚠ Some issues detected"
+    }
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nScript execution timed out"
+    }
+}
+
+# Clean up
+send "rm -f /tmp/fix_server.sh\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "exit\r"
+expect eof

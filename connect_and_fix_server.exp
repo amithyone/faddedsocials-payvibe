@@ -1,0 +1,189 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "104.207.95.218"
+set port "22"
+set username "root"
+set password "Pr7CdWcpaBNY84l152"
+
+# Spawn SSH connection
+spawn ssh -o StrictHostKeyChecking=no -p $port $username@$server
+
+# Handle password prompt
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "Password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+# Wait for shell prompt
+expect {
+    "# " {}
+    "$ " {}
+    "~#" {}
+    "~$" {}
+    timeout {
+        puts "Connection timeout"
+        exit 1
+    }
+}
+
+# Navigate to core directory and check config
+send "cd /home/wolrdhome/public_html/core\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "pwd\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Check if config directory exists
+send "test -d config && echo CONFIG_EXISTS || echo CONFIG_MISSING\r"
+expect {
+    "CONFIG_EXISTS" {
+        puts "\n✓ Config directory exists"
+        send "ls -la config/ | head -5\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+    }
+    "CONFIG_MISSING" {
+        puts "\n✗ Config directory is MISSING - attempting to restore..."
+        send "git checkout HEAD -- config/ 2>&1\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "test -d config && echo CONFIG_RESTORED || echo CONFIG_RESTORE_FAILED\r"
+        expect {
+            "CONFIG_RESTORED" {
+                puts "\n✓ Config directory restored from git"
+            }
+            "CONFIG_RESTORE_FAILED" {
+                puts "\n✗ Failed to restore config directory"
+            }
+            "# " {}
+            "$ " {}
+        }
+    }
+    "# " {}
+    "$ " {}
+}
+
+# Fix git permissions
+send "echo '=== Fixing Git Permissions ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "chmod -R u+w .git 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "find .git -type f -exec chmod 644 {} \\; 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "find .git -type d -exec chmod 755 {} \\; 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Try to pull latest code
+send "echo '=== Attempting Git Pull ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "git pull origin main 2>&1\r"
+expect {
+    "error:" {
+        puts "\n✗ Git pull failed"
+    }
+    "Already up to date" {
+        puts "\n✓ Git repository is up to date"
+    }
+    "Updating" {
+        puts "\n✓ Git pull successful"
+    }
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nGit pull timed out"
+    }
+}
+
+# Check other critical directories
+send "echo '=== Checking Critical Directories ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "for dir in app bootstrap routes database resources config; do test -d \"\$dir\" && echo \"OK \$dir/\" || echo \"MISSING \$dir/\"; done\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Clear caches
+send "echo '=== Clearing Laravel Caches ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "php artisan optimize:clear 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nCache clear timed out"
+    }
+}
+
+send "composer dump-autoload --ignore-platform-reqs 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nComposer dump timed out"
+    }
+}
+
+# Final status
+send "echo '=== Final Status ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "test -d config && test -f config/app.php && echo 'SUCCESS: Config directory restored and application should work' || echo 'WARNING: Config directory may still be missing'\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Exit
+send "exit\r"
+expect eof

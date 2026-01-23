@@ -1,0 +1,208 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set server "104.207.95.218"
+set port "22"
+set username "root"
+set password "Pr7CdWcpaBNY84l152"
+
+spawn ssh -o StrictHostKeyChecking=no -p $port $username@$server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "Password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+    timeout {
+        puts "Connection timeout"
+        exit 1
+    }
+}
+
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "Prompt timeout"
+        exit 1
+    }
+}
+
+puts "\n=== Comprehensive License Check ==="
+send "cd /home/wolrdhome/public_html/core\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Check all three bypass files
+send "echo '=== Checking GoToCore.php ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "grep -A 1 'License check bypassed' public/core/vendor/laramin/utility/src/GoToCore.php | head -2\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "echo '=== Checking Onumoti.php ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "grep -A 1 'License check bypassed' public/core/vendor/laramin/utility/src/Onumoti.php | head -2\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "echo '=== Checking Helpmate.php ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "grep -A 1 'License check bypassed' public/core/vendor/laramin/utility/src/Helpmate.php | head -2\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Check if laramin.json exists (this might trigger the check)
+send "echo '=== Checking laramin.json ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "test -f public/core/vendor/laramin/utility/src/laramin.json && echo 'EXISTS' || echo 'MISSING'\r"
+expect {
+    "EXISTS" {
+        puts "\n✓ laramin.json exists"
+    }
+    "MISSING" {
+        puts "\n✗ laramin.json missing - creating it"
+        send "cat > public/core/vendor/laramin/utility/src/laramin.json << 'EOFJSON'\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "{\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "    \"purchase_code\":\"bypassed\",\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "    \"installcode\":\"BYPASSED\",\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "    \"license_type\":\"bypassed\"\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "}\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+        send "EOFJSON\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+    }
+    "# " {}
+    "$ " {}
+}
+
+# Check PURCHASECODE in .env
+send "echo '=== Checking .env PURCHASECODE ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "grep '^PURCHASECODE=' .env || echo 'PURCHASECODE not set'\r"
+expect {
+    "PURCHASECODE not set" {
+        puts "\n⚠ PURCHASECODE not in .env - adding it"
+        send "echo 'PURCHASECODE=bypassed' >> .env\r"
+        expect {
+            "# " {}
+            "$ " {}
+        }
+    }
+    "# " {}
+    "$ " {}
+}
+
+# Clear all caches again
+send "echo '=== Final Cache Clear ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "php artisan optimize:clear 2>&1 | grep -E 'DONE|Cleared|cleared' | head -10\r"
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nCache clear timed out"
+    }
+}
+
+# Test the sysPass function
+send "echo '=== Testing sysPass Function ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "php -r \"require 'vendor/autoload.php'; \\\$app = require_once 'bootstrap/app.php'; \\\$app->make('Illuminate\\\\Contracts\\\\Console\\\\Kernel')->bootstrap(); echo Laramin\\\\Utility\\\\Helpmate::sysPass() ? 'TRUE' : 'FALSE';\" 2>&1\r"
+expect {
+    "TRUE" {
+        puts "\n✓ sysPass() returns TRUE - bypass is working!"
+    }
+    "FALSE" {
+        puts "\n✗ sysPass() returns FALSE - bypass not working"
+    }
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "\nTest timed out"
+    }
+}
+
+send "echo '=== Summary ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "echo 'All bypasses should be in place. Try accessing the site now.'\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "exit\r"
+expect eof

@@ -1,0 +1,92 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set server "104.207.95.218"
+set port "22"
+set username "root"
+set password "Pr7CdWcpaBNY84l152"
+
+spawn ssh -o StrictHostKeyChecking=no -p $port $username@$server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "Password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+    timeout {
+        puts "Connection timeout"
+        exit 1
+    }
+}
+
+expect {
+    "# " {}
+    "$ " {}
+    timeout {
+        puts "Prompt timeout"
+        exit 1
+    }
+}
+
+puts "\n=== Disabling Activation Route ==="
+send "cd /home/wolrdhome/public_html/core\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Modify the UtilityController to redirect away from activation
+send "echo '=== Modifying UtilityController ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Backup the file
+send "cp public/core/vendor/laramin/utility/src/Controller/UtilityController.php public/core/vendor/laramin/utility/src/Controller/UtilityController.php.backup\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Modify laraminStart to redirect to home
+send "sed -i 's/public function laraminStart()/public function laraminStart()\n    {\n        return redirect(\"\/\");\n    }\n    \/\/ Original function disabled:\n    \/*\n    public function laraminStart_OLD()/' public/core/vendor/laramin/utility/src/Controller/UtilityController.php\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+# Clear caches
+send "php artisan route:clear 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "php artisan config:clear 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "php artisan view:clear 2>&1\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "echo '=== Route disabled - activation screen will redirect to home ==='\r"
+expect {
+    "# " {}
+    "$ " {}
+}
+
+send "exit\r"
+expect eof

@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -p 22 root@104.207.95.218
+expect "password:"
+send "Pr7CdWcpaBNY84l152\r"
+expect "# "
+send "cd /home/wolrdhome/public_html/core\r"
+expect "# "
+send "chmod -R u+w .git\r"
+expect "# "
+send "git pull origin main\r"
+expect "# "
+send "php artisan config:clear\r"
+expect "# "
+send "php artisan cache:clear\r"
+expect "# "
+send "echo '=== Deployment Complete ==='\r"
+expect "# "
+send "exit\r"
+expect eof
