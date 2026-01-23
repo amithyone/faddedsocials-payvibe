@@ -61,6 +61,13 @@ class WebhookService
             if ($status === 'successful' || $status === 'success') {
                 $normalizedStatus = 'success';
             }
+            
+            // Determine action based on status
+            // 'created' for pending transactions, 'updated' for status changes
+            $action = 'created';
+            if ($normalizedStatus === 'success' || $normalizedStatus === 'failed' || $normalizedStatus === 'rejected') {
+                $action = 'updated';
+            }
 
             // Prepare the webhook payload
             $payload = [
@@ -71,6 +78,7 @@ class WebhookService
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => $normalizedStatus,
+                'action' => $action, // 'created' for new transactions, 'updated' for status changes
                 'payment_method' => $paymentMethod,
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
@@ -397,6 +405,7 @@ class WebhookService
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => 'success', // Use 'success' instead of 'credited'
+                'action' => 'updated', // Always 'updated' for credited amount webhook
                 'payment_method' => $paymentMethod,
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
