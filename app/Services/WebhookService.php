@@ -44,10 +44,10 @@ class WebhookService
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => $status === 'successful' ? 'success' : $status,
-                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : ($deposit->gateway->code == 1000 ? 'manual' : 'xtrapay'),
+                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : ($deposit->gateway->code == 121 ? 'checkoutnow' : ($deposit->gateway->code == 1000 ? 'manual' : 'xtrapay')),
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
-                'description' => $deposit->gateway->code == 120 ? 'Deposit via PayVibe' : ($deposit->gateway->code == 1000 ? 'Deposit via Manual Payment' : 'Deposit via Xtrapay'),
+                'description' => $deposit->gateway->code == 120 ? 'Deposit via PayVibe' : ($deposit->gateway->code == 121 ? 'Deposit via CheckoutNow' : ($deposit->gateway->code == 1000 ? 'Deposit via Manual Payment' : 'Deposit via Xtrapay')),
                 'external_id' => (string) $deposit->id,
                 'metadata' => [
                     'deposit_id' => $deposit->id,
@@ -242,8 +242,8 @@ class WebhookService
         $paymentMethod = $deposit->gateway->code ?? '';
         
         if ($paymentMethod == 121) {
-            // CheckoutNow - no external webhook needed, handled internally
-            return true;
+            // CheckoutNow - send to Xtrabusiness
+            return self::sendToXtrabusiness($deposit, $user, 'failed');
         }
         
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
@@ -271,8 +271,8 @@ class WebhookService
         $paymentMethod = $deposit->gateway->code ?? '';
         
         if ($paymentMethod == 121) {
-            // CheckoutNow - no external webhook needed, handled internally
-            return true;
+            // CheckoutNow - send to Xtrabusiness
+            return self::sendToXtrabusiness($deposit, $user, 'pending');
         }
         
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
@@ -296,9 +296,9 @@ class WebhookService
             return true;
         }
         
+        // CheckoutNow (code 121) - send to Xtrabusiness
         if ($paymentMethod == 121) {
-            // CheckoutNow - no external webhook needed, handled internally
-            return true;
+            return self::sendToXtrabusiness($deposit, $user, 'success');
         }
         
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
@@ -354,7 +354,7 @@ class WebhookService
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => 'success', // Use 'success' instead of 'credited'
-                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : ($deposit->gateway->code == 1000 ? 'manual' : 'xtrapay'),
+                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : ($deposit->gateway->code == 121 ? 'checkoutnow' : ($deposit->gateway->code == 1000 ? 'manual' : 'xtrapay')),
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
                 'description' => 'Amount credited to user balance',
