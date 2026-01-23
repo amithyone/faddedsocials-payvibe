@@ -107,6 +107,7 @@ class WebhookService
             $metadata['charges'] = $charges;
 
             // Prepare the webhook payload according to XtrapayBusiness format
+            // Always include external_id so XtrapayBusiness can reliably map to our internal deposit
             $payload = [
                 'site_api_code' => $apiCode,
                 'reference' => $deposit->trx,
@@ -117,14 +118,10 @@ class WebhookService
                 'customer_email' => $user->email,
                 'customer_name' => trim($user->firstname . ' ' . $user->lastname),
                 'description' => $description,
+                'external_id' => (string) $deposit->id,
                 'metadata' => $metadata,
                 'timestamp' => $deposit->created_at ? $deposit->created_at->toISOString() : now()->toISOString()
             ];
-            
-            // Add external_id only for successful transactions (as per XtrapayBusiness spec)
-            if ($normalizedStatus === 'success') {
-                $payload['external_id'] = (string) $deposit->id;
-            }
 
             // Send webhook
             $response = Http::withHeaders([

@@ -56,6 +56,9 @@ class UserController extends Controller
             $data['earned'] = Deposit::where('method_code', 6000)->where('status', 1)->sum('amount');
             $data['withdrawal'] = Deposit::where('user_id', Auth::id())->where('status', 3)->sum('final_amo');
 
+            // Ensure $referal is always defined for the view (empty list when no referral records yet)
+            $data['referal'] = Deposit::where('id', 0)->paginate(10);
+
 
             return view($this->activeTemplate . 'user.referal', $data);
         }else{
