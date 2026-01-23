@@ -341,35 +341,51 @@ class WebhookService
      */
     public static function sendCreditedAmountToXtrabusiness(Deposit $deposit, User $user)
     {
-                    // Skip manual payments - they are not instant payment methods
-            if ($deposit->gateway->code == 1000) {
-                Log::info('Skipping credited amount webhook for manual payment', [
+        // Ensure deposit gateway relationship is loaded
+        if (!$deposit->relationLoaded('gateway')) {
+            $deposit->load('gateway');
+        }
+        
+        // Skip manual payments - they are not instant payment methods
+        $gatewayCode = $deposit->gateway->code ?? null;
+        if ($gatewayCode == 1000) {
+            Log::info('Skipping credited amount webhook for manual payment', [
+                'deposit_id' => $deposit->id,
+                'payment_method' => 'manual'
+            ]);
+            return true;
+        }
+        
+        try {
+            // Xtrabusiness webhook configuration
+            $webhookUrl = env('XTRABUSINESS_WEBHOOK_URL', 'https://xtrapay.cash/webhook');
+            $apiKey = env('XTRABUSINESS_API_KEY', '');
+            $apiCode = env('XTRABUSINESS_API_CODE', 'faddedsocials');
+
+            if (empty($webhookUrl) || empty($apiKey)) {
+                Log::warning('Xtrabusiness webhook not configured for credited amount', [
                     'deposit_id' => $deposit->id,
-                    'payment_method' => 'manual'
+                    'webhook_url' => $webhookUrl,
+                    'has_api_key' => !empty($apiKey)
                 ]);
-                return true;
+                return false;
             }
-            
-            try {
-                // Xtrabusiness webhook configuration
-                $webhookUrl = env('XTRABUSINESS_WEBHOOK_URL', 'https://xtrapay.cash/webhook');
-                $apiKey = env('XTRABUSINESS_API_KEY', '');
-                $apiCode = env('XTRABUSINESS_API_CODE', 'faddedsocials');
 
-                if (empty($webhookUrl) || empty($apiKey)) {
-                    Log::warning('Xtrabusiness webhook not configured for credited amount', [
-                        'deposit_id' => $deposit->id,
-                        'webhook_url' => $webhookUrl,
-                        'has_api_key' => !empty($apiKey)
-                    ]);
-                    return false;
-                }
-
-                // Calculate the amount credited to user (amount after charges) - rounded to nearest 10
-                $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
-                $creditedAmount = round($creditedAmount / 10) * 10; // Round to nearest 10
+            // Calculate the amount credited to user (amount after charges) - rounded to nearest 10
+            $creditedAmount = max(0, $deposit->amount); // Ensure credited amount is never negative
+            $creditedAmount = round($creditedAmount / 10) * 10; // Round to nearest 10
             $totalPaid = $deposit->final_amo ?? $deposit->amount + $deposit->charge;
             $charges = $deposit->charge ?? 0;
+            
+            // Determine payment method
+            $paymentMethod = 'xtrapay';
+            if ($gatewayCode == 120) {
+                $paymentMethod = 'payvibe';
+            } elseif ($gatewayCode == 121) {
+                $paymentMethod = 'checkoutnow';
+            } elseif ($gatewayCode == 1000) {
+                $paymentMethod = 'manual';
+            }
 
             // Prepare the webhook payload specifically for credited amount
             $payload = [
@@ -381,7 +397,7 @@ class WebhookService
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
                 'status' => 'success', // Use 'success' instead of 'credited'
-                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : ($deposit->gateway->code == 121 ? 'checkoutnow' : ($deposit->gateway->code == 1000 ? 'manual' : 'xtrapay')),
+                'payment_method' => $paymentMethod,
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
                 'description' => 'Amount credited to user balance',
