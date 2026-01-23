@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProxyController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 
