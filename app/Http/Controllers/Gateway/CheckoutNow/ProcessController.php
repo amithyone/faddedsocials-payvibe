@@ -200,17 +200,37 @@ class ProcessController extends Controller
     
         if (!$deposit) {
             Log::error('CheckoutNow IPN: Deposit not found', [
-                'transaction_id' => $transactionId
+                'transaction_id' => $transactionId,
+                'searched_field' => 'trx',
+                'payload_keys' => array_keys($payload)
             ]);
             return response()->json(['error' => 'Deposit not found'], 404);
         }
         
+        Log::info('CheckoutNow IPN: Deposit found', [
+            'deposit_id' => $deposit->id,
+            'transaction_id' => $transactionId,
+            'current_status' => $deposit->status,
+            'expected_status' => $status,
+            'event' => $event,
+            'amount' => $deposit->amount,
+            'final_amo' => $deposit->final_amo
+        ]);
+        
         if($deposit->status == 3){
+            Log::info('CheckoutNow IPN: Transaction already rejected', [
+                'deposit_id' => $deposit->id,
+                'transaction_id' => $transactionId
+            ]);
             return response()->json(['message' => 'Transaction already rejected'], 200);
         }
         
         // Prevent multiple processing of successful transactions
         if ($deposit->status == 1 && $status === 'approved') {
+            Log::info('CheckoutNow IPN: Transaction already processed', [
+                'deposit_id' => $deposit->id,
+                'transaction_id' => $transactionId
+            ]);
             return response()->json(['message' => 'Transaction already processed'], 200);
         }
     
@@ -258,12 +278,40 @@ class ProcessController extends Controller
             DB::beginTransaction();
         
             try {
+                Log::info('CheckoutNow IPN: Processing successful transaction', [
+                    'deposit_id' => $deposit->id,
+                    'transaction_id' => $transactionId,
+                    'amount_to_credit' => $deposit->amount,
+                    'user_id' => $deposit->user_id,
+                    'event' => $event,
+                    'status' => $status,
+                    'received_amount' => $receivedAmount,
+                    'expected_amount' => $deposit->final_amo
+                ]);
+                
                 // Lock user record to prevent race conditions
                 $user = User::where('id', $deposit->user_id)->lockForUpdate()->first();
         
                 if ($user) {
-                    // Update user balance
+                    $balanceBefore = $user->balance;
+                    // Update user balance - credit the deposit amount to user's balance
                     $user->increment('balance', $deposit->amount);
+                    $balanceAfter = $user->fresh()->balance;
+                    
+                    Log::info('CheckoutNow IPN: User balance credited', [
+                        'deposit_id' => $deposit->id,
+                        'transaction_id' => $transactionId,
+                        'user_id' => $user->id,
+                        'amount_credited' => $deposit->amount,
+                        'balance_before' => $balanceBefore,
+                        'balance_after' => $balanceAfter
+                    ]);
+                } else {
+                    Log::error('CheckoutNow IPN: User not found', [
+                        'deposit_id' => $deposit->id,
+                        'transaction_id' => $transactionId,
+                        'user_id' => $deposit->user_id
+                    ]);
                 }
         
                 // Mark deposit as successful
@@ -272,6 +320,12 @@ class ProcessController extends Controller
                 // Refresh deposit to ensure gateway relationship is loaded
                 $deposit->refresh();
                 $deposit->load('gateway');
+                
+                Log::info('CheckoutNow IPN: Sending webhooks', [
+                    'deposit_id' => $deposit->id,
+                    'transaction_id' => $transactionId,
+                    'status' => $deposit->status
+                ]);
                 
                 // Send webhook for successful transaction
                 WebhookService::sendSuccessfulTransaction($deposit, $user);
@@ -282,22 +336,37 @@ class ProcessController extends Controller
                 if(!$mismatch){
                     Log::info('CheckoutNow IPN: Transaction successful', [
                         'transaction_id' => $transactionId,
-                        'amount' => $deposit->amount
+                        'amount' => $deposit->amount,
+                        'deposit_id' => $deposit->id
                     ]);
                 }
+                
+                Log::info('CheckoutNow IPN: Successfully processed and credited', [
+                    'deposit_id' => $deposit->id,
+                    'transaction_id' => $transactionId
+                ]);
         
                 // Commit transaction
                 DB::commit();
+                
+                Log::info('CheckoutNow IPN: Transaction committed successfully', [
+                    'transaction_id' => $transactionId,
+                    'deposit_id' => $deposit->id,
+                    'status' => $status
+                ]);
         
                 return response()->json(['message' => 'Transaction processed successfully'], 200);
             } catch (\Exception $e) {
                 // Rollback transaction on error
                 DB::rollBack();
+                
                 Log::error('CheckoutNow IPN: Database error', [
                     'transaction_id' => $transactionId,
+                    'deposit_id' => $deposit->id ?? null,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
+                
                 return response()->json(['error' => 'Database error: ' . $e->getMessage()], 500);
             }
         } elseif ($event === 'payment.rejected' || $status === 'rejected') {
