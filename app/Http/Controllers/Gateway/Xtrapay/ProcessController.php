@@ -170,12 +170,20 @@ class ProcessController extends Controller
                 $user = User::where('id', $deposit->user_id)->lockForUpdate()->first();
     
                 if ($user) {
-                    // Update user balance
+                    // Update user balance - credit the deposit amount to user's balance
                     $user->increment('balance', $deposit->amount);
                 }
     
                 // Mark deposit as successful
                 $deposit->update(['status' => 1]);
+                
+                // Refresh deposit to ensure we have the latest data
+                $deposit->refresh();
+                
+                // Ensure gateway relationship is loaded before sending webhooks
+                if (!$deposit->relationLoaded('gateway')) {
+                    $deposit->load('gateway');
+                }
                 
                 // Send webhook for successful transaction
                 WebhookService::sendSuccessfulTransaction($deposit, $user);

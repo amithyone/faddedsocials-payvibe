@@ -9,12 +9,16 @@ class GoToCore{
 
     public function handle($request, Closure $next)
     {
-        $fileExists = file_exists(__DIR__.'/laramin.json');
-        $general = $this->getGeneral();
-        if ($fileExists && $general->maintenance_mode != 9 && env('PURCHASECODE')) {
-            return redirect()->route(VugiChugi::acDRouter());
-        }
+        // License check bypassed - always allow requests to proceed
         return $next($request);
+
+        // Original license check (disabled) left below for reference:
+        // $fileExists = file_exists(__DIR__.'/laramin.json');
+        // $general = $this->getGeneral();
+        // if ($fileExists && $general->maintenance_mode != 9 && env('PURCHASECODE')) {
+        //     return redirect()->route(VugiChugi::acDRouter());
+        // }
+        // return $next($request);
     }
 
     public function getGeneral(){
