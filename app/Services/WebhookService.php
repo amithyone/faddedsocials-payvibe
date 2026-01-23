@@ -15,6 +15,11 @@ class WebhookService
     public static function sendToXtrabusiness(Deposit $deposit, User $user, $status = 'successful')
     {
         try {
+            // Ensure deposit gateway relationship is loaded
+            if (!$deposit->relationLoaded('gateway')) {
+                $deposit->load('gateway');
+            }
+            
             // Xtrabusiness webhook configuration
             $webhookUrl = env('XTRABUSINESS_WEBHOOK_URL', 'https://xtrapay.cash/webhook');
             $apiKey = env('XTRABUSINESS_API_KEY', '');
@@ -34,6 +39,28 @@ class WebhookService
             $creditedAmount = round($creditedAmount / 10) * 10; // Round to nearest 10
             $totalPaid = $deposit->final_amo ?? $deposit->amount + $deposit->charge;
             $charges = $deposit->charge ?? 0;
+            
+            // Determine payment method and description
+            $gatewayCode = $deposit->gateway->code ?? null;
+            $paymentMethod = 'xtrapay';
+            $description = 'Deposit via Xtrapay';
+            
+            if ($gatewayCode == 120) {
+                $paymentMethod = 'payvibe';
+                $description = 'Deposit via PayVibe';
+            } elseif ($gatewayCode == 121) {
+                $paymentMethod = 'checkoutnow';
+                $description = 'Deposit via CheckoutNow';
+            } elseif ($gatewayCode == 1000) {
+                $paymentMethod = 'manual';
+                $description = 'Deposit via Manual Payment';
+            }
+            
+            // Normalize status - ensure 'success' is used for successful transactions
+            $normalizedStatus = $status;
+            if ($status === 'successful' || $status === 'success') {
+                $normalizedStatus = 'success';
+            }
 
             // Prepare the webhook payload
             $payload = [
@@ -43,11 +70,11 @@ class WebhookService
                 'total_paid' => $totalPaid, // Total amount paid by user
                 'charges' => $charges, // Transaction charges
                 'currency' => 'NGN',
-                'status' => $status === 'successful' ? 'success' : $status,
-                'payment_method' => $deposit->gateway->code == 120 ? 'payvibe' : ($deposit->gateway->code == 121 ? 'checkoutnow' : ($deposit->gateway->code == 1000 ? 'manual' : 'xtrapay')),
+                'status' => $normalizedStatus,
+                'payment_method' => $paymentMethod,
                 'customer_email' => $user->email,
                 'customer_name' => $user->firstname . ' ' . $user->lastname,
-                'description' => $deposit->gateway->code == 120 ? 'Deposit via PayVibe' : ($deposit->gateway->code == 121 ? 'Deposit via CheckoutNow' : ($deposit->gateway->code == 1000 ? 'Deposit via Manual Payment' : 'Deposit via Xtrapay')),
+                'description' => $description,
                 'external_id' => (string) $deposit->id,
                 'metadata' => [
                     'deposit_id' => $deposit->id,

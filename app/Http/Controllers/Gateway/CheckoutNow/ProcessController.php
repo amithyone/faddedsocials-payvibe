@@ -269,6 +269,10 @@ class ProcessController extends Controller
                 // Mark deposit as successful
                 $deposit->update(['status' => 1]);
                 
+                // Refresh deposit to ensure gateway relationship is loaded
+                $deposit->refresh();
+                $deposit->load('gateway');
+                
                 // Send webhook for successful transaction
                 WebhookService::sendSuccessfulTransaction($deposit, $user);
                 
