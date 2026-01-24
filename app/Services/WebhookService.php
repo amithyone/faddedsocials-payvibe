@@ -297,9 +297,13 @@ class WebhookService
         // Determine payment method and send appropriate webhook
         $paymentMethod = $deposit->gateway->code ?? '';
         
+        // Skip CheckoutNow - do not send to Xtrabusiness
         if ($paymentMethod == 121) {
-            // CheckoutNow - send to Xtrabusiness
-            return self::sendToXtrabusiness($deposit, $user, 'failed');
+            Log::info('Skipping CheckoutNow failed transaction webhook to Xtrabusiness', [
+                'deposit_id' => $deposit->id,
+                'payment_method' => 'checkoutnow'
+            ]);
+            return true;
         }
         
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
@@ -326,9 +330,13 @@ class WebhookService
         // Determine payment method and send appropriate webhook
         $paymentMethod = $deposit->gateway->code ?? '';
         
+        // Skip CheckoutNow - do not send to Xtrabusiness
         if ($paymentMethod == 121) {
-            // CheckoutNow - send to Xtrabusiness
-            return self::sendToXtrabusiness($deposit, $user, 'pending');
+            Log::info('Skipping CheckoutNow pending transaction webhook to Xtrabusiness', [
+                'deposit_id' => $deposit->id,
+                'payment_method' => 'checkoutnow'
+            ]);
+            return true;
         }
         
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
@@ -352,9 +360,13 @@ class WebhookService
             return true;
         }
         
-        // CheckoutNow (code 121) - send to Xtrabusiness
+        // Skip CheckoutNow - do not send to Xtrabusiness
         if ($paymentMethod == 121) {
-            return self::sendToXtrabusiness($deposit, $user, 'success');
+            Log::info('Skipping CheckoutNow successful transaction webhook to Xtrabusiness', [
+                'deposit_id' => $deposit->id,
+                'payment_method' => 'checkoutnow'
+            ]);
+            return true;
         }
         
         if (str_contains(strtolower($paymentMethod), 'payvibe')) {
@@ -381,6 +393,15 @@ class WebhookService
             Log::info('Skipping credited amount webhook for manual payment', [
                 'deposit_id' => $deposit->id,
                 'payment_method' => 'manual'
+            ]);
+            return true;
+        }
+        
+        // Skip CheckoutNow - do not send to Xtrabusiness
+        if ($gatewayCode == 121) {
+            Log::info('Skipping CheckoutNow credited amount webhook to Xtrabusiness', [
+                'deposit_id' => $deposit->id,
+                'payment_method' => 'checkoutnow'
             ]);
             return true;
         }
