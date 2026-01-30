@@ -63,35 +63,41 @@
                                 <select name="gateway" id="gateway" class="form-control" required aria-describedby="gateway-help">
                                     <option value="">Select Payment Method</option>
                                     @foreach ($gateway_currency as $data)
-                                        @if($data->method_code == 120)
-                                            <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
-                                                {{ $data->name }}
-                                            </option>
-                                        @endif
-                                    @endforeach
-                                    @foreach ($gateway_currency as $data)
                                         @if($data->method_code == 121 || $data->method_code == '121')
                                             <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
-                                                {{ $data->name }}
+                                                {{ $data->name }} (Lower charges • ₦2,000–₦500,000)
                                             </option>
                                         @endif
                                     @endforeach
                                     @foreach ($gateway_currency as $data)
                                         @if($data->method_code == 118)
                                             <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
-                                                {{ $data->name }}
+                                                {{ $data->name }} (Instant • under ₦5,000 only)
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                    @foreach ($gateway_currency as $data)
+                                        @if($data->method_code == 120)
+                                            <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
+                                                {{ $data->name }} (max ₦7,500)
                                             </option>
                                         @endif
                                     @endforeach
                                     @foreach ($gateway_currency as $data)
                                         @if($data->method_code == 1000)
                                             <option value="{{ $data->method_code }}" data-currency="{{ $data->currency }}">
-                                                {{ $data->name }}
+                                                {{ $data->name }} (all amounts)
                                             </option>
                                         @endif
                                     @endforeach
                                 </select>
                                 <div id="gateway-help" class="form-text">Choose payment method</div>
+                                <div id="checkoutnow-notice" class="alert alert-success mt-3" style="display: none;" role="alert" aria-live="polite">
+                                    <small><i class="fas fa-tag" aria-hidden="true"></i> <strong>CheckoutNow</strong> has lower charges and accepts ₦2,000 to ₦500,000.</small>
+                                </div>
+                                <div id="xtrapay-notice" class="alert alert-info mt-3" style="display: none;" role="alert" aria-live="polite">
+                                    <small><i class="fas fa-info-circle" aria-hidden="true"></i> XtraPay (instant) is only available for amounts under ₦5,000. For ₦5,000 and above, use CheckoutNow for lower charges.</small>
+                                </div>
                                 <div id="payvibe-notice" class="alert alert-info mt-3" style="display: none;" role="alert" aria-live="polite">
                                     <small><i class="fas fa-info-circle" aria-hidden="true"></i> PayVibe is unavailable for amounts over ₦7,500. Please select another payment method.</small>
                                 </div>
@@ -110,54 +116,56 @@
 
                         <script>
                             $(document).ready(function() {
-                                console.log('PayVibe disable filter loaded');
-                                console.log('jQuery version:', $.fn.jquery);
-
                                 function togglePaymentMethods() {
                                     var amount = parseInt($('input[name="amount"]').val()) || 0;
                                     var payvibeOption = $('#gateway option[value="120"]');
                                     var xtrapayOption = $('#gateway option[value="118"]');
+                                    var checkoutnowOption = $('#gateway option[value="121"]');
                                     var manualOption = $('#gateway option[value="1000"]');
                                     var payvibeNotice = $('#payvibe-notice');
+                                    var xtrapayNotice = $('#xtrapay-notice');
+                                    var checkoutnowNotice = $('#checkoutnow-notice');
                                     var manualNotice = $('#manual-notice');
                                     var gatewaySelect = $('#gateway');
 
-                                    console.log('Amount:', amount);
-                                    console.log('PayVibe option found:', payvibeOption.length > 0);
-                                    console.log('XtraPay option found:', xtrapayOption.length > 0);
-                                    console.log('Manual option found:', manualOption.length > 0);
-                                    console.log('Current gateway value:', gatewaySelect.val());
-
                                     // Reset all options and notices
                                     payvibeOption.prop('disabled', false);
-                                    xtrapayOption.prop('disabled', false); // XtraPay always enabled
+                                    xtrapayOption.prop('disabled', false);
+                                    checkoutnowOption.prop('disabled', false);
                                     manualOption.prop('disabled', false);
                                     payvibeNotice.hide();
+                                    xtrapayNotice.hide();
+                                    checkoutnowNotice.hide();
                                     manualNotice.hide();
 
+                                    // XtraPay: only for amounts < 5000
+                                    if (amount >= 5000) {
+                                        xtrapayOption.prop('disabled', true);
+                                        xtrapayNotice.show();
+                                        if (gatewaySelect.val() == '118') {
+                                            gatewaySelect.val('');
+                                        }
+                                    }
+
+                                    // PayVibe: only for amounts <= 7500
                                     if (amount > 7500) {
-                                        // Amount > 7500: Disable PayVibe, XtraPay and Manual are always enabled
                                         payvibeOption.prop('disabled', true);
                                         payvibeNotice.show();
-                                        console.log('Disabled PayVibe for amounts over 7500, XtraPay and Manual enabled');
-                                        
-                                        // If PayVibe is currently selected, clear the selection
                                         if (gatewaySelect.val() == '120') {
                                             gatewaySelect.val('');
-                                            console.log('Cleared PayVibe selection');
                                         }
-                                    } else {
-                                        // Amount <= 7500: All payment methods enabled (XtraPay accepts all amounts)
-                                        payvibeOption.prop('disabled', false);
-                                        console.log('All payment methods enabled (XtraPay accepts all amounts)');
                                     }
+
+                                    // CheckoutNow: 2000 to 500000 (always in range with current input limits)
+                                    // Show notice when CheckoutNow is selected (handled in change event)
                                 }
 
                                 // Set payment method based on selected gateway
                                 $('#gateway').on('change', function() {
-                                    console.log('Gateway changed to:', $(this).val());
                                     var methodCode = $(this).val();
                                     var paymentMethod = '';
+                                    
+                                    $('#checkoutnow-notice').hide();
                                     
                                     if (methodCode == '118') {
                                         paymentMethod = 'xtrapay';
@@ -165,16 +173,14 @@
                                         paymentMethod = 'payvibe';
                                     } else if (methodCode == '121') {
                                         paymentMethod = 'checkoutnow';
-                                        // Show payer name field for CheckoutNow
                                         $('#payer_name').closest('.card-body').show();
                                         $('#payer_name').prop('required', true);
+                                        $('#checkoutnow-notice').show();
                                     } else if (methodCode == '1000') {
                                         paymentMethod = 'manual';
-                                        // Hide payer name field for manual
                                         $('#payer_name').closest('.card-body').hide();
                                         $('#payer_name').prop('required', false);
                                     } else {
-                                        // Hide payer name field for other gateways
                                         $('#payer_name').closest('.card-body').hide();
                                         $('#payer_name').prop('required', false);
                                     }
@@ -189,12 +195,9 @@
 
                                 // Monitor amount input
                                 $('input[name="amount"]').on('input', function() {
-                                    console.log('Amount changed:', $(this).val());
                                     togglePaymentMethods();
                                 });
 
-                                // Initial run
-                                console.log('Running initial togglePaymentMethods');
                                 togglePaymentMethods();
                             });
                         </script>
@@ -238,6 +241,8 @@
                                         <p class="mb-0">XtraPay</p>
                                     @elseif($deposit->method_code == 120)
                                         <p class="mb-0">PayVibe</p>
+                                    @elseif($deposit->method_code == 121 || $deposit->method_code == '121')
+                                        <p class="mb-0">CheckoutNow</p>
                                     @else
                                         <p class="mb-0">Referral</p>
                                     @endif

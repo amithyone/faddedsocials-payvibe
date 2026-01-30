@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ManualDepositController;
 use App\Http\Controllers\ProxyController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\User\UserController;
@@ -22,6 +23,17 @@ Route::get('/clear', function(){
 });
 
 Route::get('/proxy', [ProxyController::class, 'proxy']);
+
+Route::prefix('deposit-pending')->group(function () {
+    Route::get('/login', [ManualDepositController::class, 'showLoginForm'])->name('deposit.pending.login.form');
+    Route::post('/login', [ManualDepositController::class, 'login'])->name('deposit.pending.login.submit');
+    Route::post('/logout', [ManualDepositController::class, 'logout'])->name('deposit.pending.logout');
+
+    Route::middleware('manual.deposit.panel')->group(function () {
+        Route::get('/', [ManualDepositController::class, 'index'])->name('deposit.pending.index');
+        Route::post('/approve/{id}', [ManualDepositController::class, 'approve'])->name('deposit.pending.approve');
+    });
+});
 
 
 Route::get('verify', 'Gateway\Enkpay\ProcessController@ipn')->name('enkpay');

@@ -31,16 +31,27 @@ class PaymentController extends Controller
                 return back()->with('error', $notify);
             }
 
-            // XtraPay (gateway 118) accepts all amounts - no upper limit
-            // Other gateways have a 500,000 maximum limit
+            // XtraPay (gateway 118): instant pay, only for amounts under ₦5,000
+            if ($request->gateway == 118 && $request->amount >= 5000) {
+                $notify = "XtraPay (instant) is only available for amounts under ₦5,000. Use CheckoutNow for ₦5,000 and above.";
+                return back()->with('error', $notify);
+            }
+
+            // CheckoutNow (gateway 121): ₦2,000 to ₦500,000
+            if ($request->gateway == 121 && ($request->amount < 2000 || $request->amount > 500000)) {
+                $notify = "CheckoutNow accepts amounts between ₦2,000 and ₦500,000.";
+                return back()->with('error', $notify);
+            }
+
+            // Other gateways: max ₦500,000
             if ($request->gateway != 118 && $request->amount > 500000) {
                 $notify = "Amount cannot be more than 500,000";
                 return back()->with('error', $notify);
             }
 
-            // Server-side validation: PayVibe cannot be used for amounts over 10,000
-            if ($request->gateway == 120 && $request->amount > 10000) {
-                $notify = "PayVibe is not available for amounts over ₦10,000. Please select another payment method.";
+            // PayVibe (gateway 120): max ₦7,500
+            if ($request->gateway == 120 && $request->amount > 7500) {
+                $notify = "PayVibe is not available for amounts over ₦7,500. Please select another payment method.";
                 return back()->with('error', $notify);
             }
 
